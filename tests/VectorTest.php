@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-namespace Polyclip\Tests;
-
 use PHPUnit\Framework\TestCase;
 use Polyclip\Lib\Vector;
 use Brick\Math\BigDecimal;
@@ -47,8 +45,8 @@ class VectorTest extends TestCase
         $shared = new Vector(BigDecimal::of(0), BigDecimal::of(0));
         $base = new Vector(BigDecimal::of(1), BigDecimal::of(0));
         $angle = new Vector(BigDecimal::of(1), BigDecimal::of(0));
-        $this->assertEquals(BigDecimal::of(0), Vector::sineOfAngle($shared, $base, $angle));
-        $this->assertEquals(BigDecimal::of(1), Vector::cosineOfAngle($shared, $base, $angle));
+        $this->assertTrue(BigDecimal::of(0)->isEqualTo(Vector::sineOfAngle($shared, $base, $angle)));
+        $this->assertTrue(BigDecimal::of(1)->isEqualTo(Vector::cosineOfAngle($shared, $base, $angle)));
     }
 
     public function testSineAndCosineOfAngle90Degrees(): void
@@ -56,8 +54,8 @@ class VectorTest extends TestCase
         $shared = new Vector(BigDecimal::of(0), BigDecimal::of(0));
         $base = new Vector(BigDecimal::of(1), BigDecimal::of(0));
         $angle = new Vector(BigDecimal::of(0), BigDecimal::of(-1));
-        $this->assertEquals(BigDecimal::of(1), Vector::sineOfAngle($shared, $base, $angle));
-        $this->assertEquals(BigDecimal::of(0), Vector::cosineOfAngle($shared, $base, $angle));
+        $this->assertTrue(BigDecimal::of(1)->isEqualTo(Vector::sineOfAngle($shared, $base, $angle)));
+        $this->assertTrue(BigDecimal::of(0)->isEqualTo(Vector::cosineOfAngle($shared, $base, $angle)));
     }
 
     public function testPerpendicularVertical(): void
@@ -102,5 +100,48 @@ class VectorTest extends TestCase
         $this->assertTrue(BigDecimal::of(46)->isEqualTo($i->y));
     }
 
-    // Add more tests for other vector operations as per TypeScript tests
+    public function testCrossProductWithZeroVector(): void
+    {
+        $v1 = new Vector(BigDecimal::of(0), BigDecimal::of(0));
+        $v2 = new Vector(BigDecimal::of(3), BigDecimal::of(4));
+        $this->assertEquals(BigDecimal::of(0), Vector::crossProduct($v1, $v2));
+    }
+
+    public function testDotProductWithPerpendicularVectors(): void
+    {
+        $v1 = new Vector(BigDecimal::of(1), BigDecimal::of(0));
+        $v2 = new Vector(BigDecimal::of(0), BigDecimal::of(1));
+        $this->assertEquals(BigDecimal::of(0), Vector::dotProduct($v1, $v2));
+    }
+    
+    public function testLengthOfZeroVector(): void
+    {
+        $v = new Vector(BigDecimal::of(0), BigDecimal::of(0));
+        $this->assertTrue(BigDecimal::of(0)->isEqualTo(Vector::length($v)));
+    }
+
+    public function testSineAndCosineOfAngles(): void
+    {
+        $shared = new Vector(BigDecimal::of(0), BigDecimal::of(0));
+        $base = new Vector(BigDecimal::of(1), BigDecimal::of(0));
+
+        // 180 degrees
+        $angle180 = new Vector(BigDecimal::of(-1), BigDecimal::of(0));
+        $this->assertTrue(BigDecimal::of(0)->isEqualTo(Vector::sineOfAngle($shared, $base, $angle180)));
+        $this->assertTrue(BigDecimal::of(-1)->isEqualTo(Vector::cosineOfAngle($shared, $base, $angle180)));
+
+        // 90 degrees (already tested, but included for completeness)
+        $angle90 = new Vector(BigDecimal::of(0), BigDecimal::of(-1));
+        $this->assertTrue(BigDecimal::of(1)->isEqualTo(Vector::sineOfAngle($shared, $base, $angle90)));
+        $this->assertTrue(BigDecimal::of(0)->isEqualTo(Vector::cosineOfAngle($shared, $base, $angle90)));
+    }
+
+    public function testIntersectionOfParallelLines(): void
+    {
+        $p1 = new Vector(BigDecimal::of(0), BigDecimal::of(0));
+        $v1 = new Vector(BigDecimal::of(1), BigDecimal::of(1));
+        $p2 = new Vector(BigDecimal::of(1), BigDecimal::of(1));
+        $v2 = new Vector(BigDecimal::of(1), BigDecimal::of(1));
+        $this->assertNull(Vector::intersection($p1, $v1, $p2, $v2));
+    }
 }

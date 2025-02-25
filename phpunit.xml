@@ -2,13 +2,12 @@
 <phpunit
         bootstrap="vendor/autoload.php"
         colors="true"
-        verbose="true"
         stopOnFailure="false">
     <php>
         <ini name="memory_limit" value="256M" />
     </php>
     <testsuites>
-        <testsuite name="SplayTree Tests">
+        <testsuite name="PolyClip Tests">
             <directory>tests</directory>
         </testsuite>
     </testsuites>

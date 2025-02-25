@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-namespace Polyclip\Tests;
-
 use PHPUnit\Framework\TestCase;
 use Polyclip\Lib\Util;
 use Brick\Math\BigDecimal;

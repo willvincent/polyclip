@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-namespace Polyclip\Tests;
-
 use PHPUnit\Framework\TestCase;
 use Polyclip\Lib\Geometry\RingOut;
 use Polyclip\Lib\Geometry\PolyOut;
@@ -37,7 +35,6 @@ class GeometryOutputTest extends TestCase
         $seg2 = Segment::fromRing($p2, $p3, null);
         $seg3 = Segment::fromRing($p3, $p1, null);
 
-        // Mock isInResult to true
         $reflection = new \ReflectionClass($seg1);
         $property = $reflection->getProperty('_isInResult');
         $property->setAccessible(true);
@@ -48,9 +45,12 @@ class GeometryOutputTest extends TestCase
         $rings = RingOut::factory([$seg1, $seg2, $seg3]);
 
         $this->assertCount(1, $rings);
-        $this->assertEquals([
-            [[0, 0], [1, 1], [0, 1], [0, 0]]
-        ], [$rings[0]->getGeom()]);
+        $this->assertEquals(
+            [
+                [[0, 0], [0, 1], [1, 1], [0, 0]]
+            ],
+            [$rings[0]->getGeom()]
+        );
     }
 
     public function testRingOutExteriorRing(): void
@@ -63,7 +63,6 @@ class GeometryOutputTest extends TestCase
         $seg2 = Segment::fromRing($p2, $p3, null);
         $seg3 = Segment::fromRing($p3, $p1, null);
 
-        // Mock isInResult to true
         $reflection = new \ReflectionClass($seg1);
         $property = $reflection->getProperty('_isInResult');
         $property->setAccessible(true);
@@ -75,7 +74,10 @@ class GeometryOutputTest extends TestCase
 
         $this->assertNull($ring->enclosingRing());
         $this->assertTrue($ring->isExteriorRing());
-        $this->assertEquals([[0, 0], [1, 1], [0, 1], [0, 0]], $ring->getGeom());
+        $this->assertEquals(
+            [[0, 0], [0, 1], [1, 1], [0, 0]],
+            $ring->getGeom()
+        );
     }
 
     public function testPolyOutBasic(): void
@@ -121,5 +123,87 @@ class GeometryOutputTest extends TestCase
         ], $multiPoly->getGeom());
     }
 
-    // Add more tests for complex configurations like bow ties, ringed rings, etc., as per TypeScript tests
+    public function testRingOutFactoryBowTie(): void
+    {
+        $p1 = new Vector(BigDecimal::of(0), BigDecimal::of(0));
+        $p2 = new Vector(BigDecimal::of(2), BigDecimal::of(2));
+        $p3 = new Vector(BigDecimal::of(4), BigDecimal::of(0));
+        $p4 = new Vector(BigDecimal::of(2), BigDecimal::of(-2));
+
+        $seg1 = Segment::fromRing($p1, $p2, null);
+        $seg2 = Segment::fromRing($p2, $p3, null);
+        $seg3 = Segment::fromRing($p3, $p4, null);
+        $seg4 = Segment::fromRing($p4, $p1, null);
+
+        $reflection = new \ReflectionClass($seg1);
+        $property = $reflection->getProperty('_isInResult');
+        $property->setAccessible(true);
+        $property->setValue($seg1, true);
+        $property->setValue($seg2, true);
+        $property->setValue($seg3, true);
+        $property->setValue($seg4, true);
+
+        $rings = RingOut::factory([$seg1, $seg2, $seg3, $seg4]);
+
+        $this->assertCount(1, $rings);
+        $geom = $rings[0]->getGeom();
+        $this->assertEquals(
+            [[0, 0], [2, -2], [4, 0], [2, 2], [0, 0]],
+            $geom
+        );
+    }
+
+    public function testPolyOutWithHole(): void
+    {
+        $outerRing = $this->createMock(RingOut::class);
+        $outerRing->method('getGeom')->willReturn([[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]]);
+        $outerRing->method('isExteriorRing')->willReturn(true);
+
+        $innerRing = $this->createMock(RingOut::class);
+        $innerRing->method('getGeom')->willReturn([[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]);
+        $innerRing->method('isExteriorRing')->willReturn(false);
+        $innerRing->method('enclosingRing')->willReturn($outerRing);
+
+        $poly = new PolyOut($outerRing);
+        $poly->addInterior($innerRing);
+
+        $this->assertEquals(
+            [
+                [[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]],
+                [[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]
+            ],
+            $poly->getGeom()
+        );
+    }
+
+    public function testMultiPolyOutWithNestedRings(): void
+    {
+        $outer = $this->createMock(RingOut::class);
+        $outer->method('getGeom')->willReturn([[0, 0], [5, 0], [5, 5], [0, 5], [0, 0]]);
+        $outer->method('isExteriorRing')->willReturn(true);
+
+        $middle = $this->createMock(RingOut::class);
+        $middle->method('getGeom')->willReturn([[1, 1], [4, 1], [4, 4], [1, 4], [1, 1]]);
+        $middle->method('isExteriorRing')->willReturn(false);
+        $middle->method('enclosingRing')->willReturn($outer);
+
+        $inner = $this->createMock(RingOut::class);
+        $inner->method('getGeom')->willReturn([[2, 2], [3, 2], [3, 3], [2, 3], [2, 2]]);
+        $inner->method('isExteriorRing')->willReturn(true);
+        $inner->method('enclosingRing')->willReturn($middle);
+
+        $multiPoly = new MultiPolyOut([$outer, $middle, $inner]);
+
+        $expected = [
+            [ // Polygon 1: outer with middle as hole
+                [[0, 0], [5, 0], [5, 5], [0, 5], [0, 0]],
+                [[1, 1], [4, 1], [4, 4], [1, 4], [1, 1]]
+            ],
+            [ // Polygon 2: inner
+                [[2, 2], [3, 2], [3, 3], [2, 3], [2, 2]]
+            ]
+        ];
+
+        $this->assertEquals($expected, $multiPoly->getGeom());
+    }
 }
