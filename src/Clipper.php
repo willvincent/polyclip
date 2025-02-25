@@ -90,7 +90,7 @@ final class Clipper
      * Prepares geometries by converting them to the internal array format.
      *
      * @param  mixed  ...$geoms  Geometries to prepare
-     * @return array Prepared geometries as a flat array of coordinate arrays
+     * @return mixed[] Prepared geometries as a flat array of coordinate arrays
      */
     private static function prepareGeometries(...$geoms): array
     {
@@ -106,8 +106,8 @@ final class Clipper
     /**
      * Converts input to coordinate arrays, handling FeatureCollections.
      *
-     * @param  string|GeoJson|array  $geom
-     * @return array Array of coordinate arrays
+     * @param  string|GeoJson|mixed[]  $geom
+     * @return mixed[] Array of coordinate arrays
      *
      * @throws \InvalidArgumentException
      */
@@ -149,7 +149,8 @@ final class Clipper
 
     /**
      * Converts a Geometry object to a coordinate array.
-     *
+     * @param Geometry $geometry
+     * @return mixed[]
      * @throws \InvalidArgumentException
      */
     private static function geometryToArray(Geometry $geometry): array
@@ -164,6 +165,11 @@ final class Clipper
 
     /**
      * Recursively converts all numbers in the coordinate array to BigDecimal.
+     *
+     * @param mixed[] $coordinates
+     * @return mixed[]
+     * @throws \Brick\Math\Exception\DivisionByZeroException
+     * @throws \Brick\Math\Exception\NumberFormatException
      */
     private static function convertToBigDecimal(array $coordinates): array
     {
@@ -178,6 +184,8 @@ final class Clipper
 
     /**
      * Recursively converts all BigDecimal instances in the coordinate array to floats.
+     * @param mixed[] $coordinates
+     * @return mixed[]
      */
     private static function convertToFloat(array $coordinates): array
     {
@@ -195,6 +203,8 @@ final class Clipper
 
     /**
      * Converts a coordinate array to a Geometry object.
+     * @param mixed[] $array
+     * @return Geometry
      */
     private static function arrayToGeometry(array $array): Geometry
     {
@@ -211,6 +221,8 @@ final class Clipper
 
     /**
      * Converts a coordinate array to a Feature with empty properties.
+     * @param mixed[] $array
+     * @return Feature
      */
     private static function arrayToFeature(array $array): Feature
     {
