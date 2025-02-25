@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Polyclip\Lib;
 
 use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 
 class Vector
 {
@@ -44,8 +45,8 @@ class Vector
         );
 
         return static::crossProduct($vectorAngle, $vectorBase)
-            ->dividedBy(static::length($vectorAngle), 10)
-            ->dividedBy(static::length($vectorBase), 10);
+            ->dividedBy(static::length($vectorAngle), 10, RoundingMode::DOWN)
+            ->dividedBy(static::length($vectorBase), 10, RoundingMode::DOWN);
     }
 
     public static function cosineOfAngle(Vector $shared, Vector $base, Vector $angle): BigDecimal
@@ -61,8 +62,8 @@ class Vector
         );
 
         return static::dotProduct($vectorAngle, $vectorBase)
-            ->dividedBy(static::length($vectorAngle), 10)
-            ->dividedBy(static::length($vectorBase), 10);
+            ->dividedBy(static::length($vectorAngle), 10, RoundingMode::DOWN)
+            ->dividedBy(static::length($vectorBase), 10, RoundingMode::DOWN);
     }
 
     public static function horizontalIntersection(Vector $point, Vector $vector, BigDecimal $y): ?Vector
@@ -72,7 +73,7 @@ class Vector
         }
 
         return new Vector(
-            x: $point->x->plus(($vector->x->dividedBy($vector->y, 10))->multipliedBy($y->minus($point->y))),
+            x: $point->x->plus(($vector->x->dividedBy($vector->y, 10, RoundingMode::DOWN))->multipliedBy($y->minus($point->y))),
             y: $y,
         );
     }
@@ -85,7 +86,7 @@ class Vector
 
         return new Vector(
             x: $x,
-            y: $point->y->plus(($vector->y->dividedBy($vector->x, 10))->multipliedBy($x->minus($point->x))),
+            y: $point->y->plus(($vector->y->dividedBy($vector->x, 10, RoundingMode::DOWN))->multipliedBy($x->minus($point->x))),
         );
     }
 
@@ -119,17 +120,16 @@ class Vector
             x: $point2->x->minus($point1->x),
             y: $point2->y->minus($point1->y),
         );
-        $d1 = static::crossProduct($vector, $vector1)->dividedBy($cross, 10);
-        $d2 = static::crossProduct($vector, $vector2)->dividedBy($cross, 10);
+        $d1 = static::crossProduct($vector, $vector1)->dividedBy($cross, 20, RoundingMode::DOWN);
+        $d2 = static::crossProduct($vector, $vector2)->dividedBy($cross, 20, RoundingMode::DOWN);
 
-        // take the average of the two calculations to minimize rounding error
         $x1 = $point1->x->plus($d2->multipliedBy($vector1->x));
         $x2 = $point2->x->plus($d1->multipliedBy($vector2->x));
         $y1 = $point1->y->plus($d2->multipliedBy($vector1->y));
         $y2 = $point2->y->plus($d1->multipliedBy($vector2->y));
 
-        $x = ($x1->plus($x2))->dividedBy(2, 10);
-        $y = ($y1->plus($y2))->dividedBy(2, 10);
+        $x = ($x1->plus($x2))->dividedBy(2, 20, RoundingMode::DOWN);
+        $y = ($y1->plus($y2))->dividedBy(2, 20, RoundingMode::DOWN);
 
         return new Vector($x, $y);
     }

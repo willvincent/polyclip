@@ -37,10 +37,10 @@ class GeometryInputTest extends TestCase
         $this->assertCount(3, $ring->segments);
         $this->assertCount(6, $ring->getSweepEvents());
 
-        $this->assertEquals(BigDecimal::of(0), $ring->segments[0]->leftSE->point->x);
-        $this->assertEquals(BigDecimal::of(0), $ring->segments[0]->leftSE->point->y);
-        $this->assertEquals(BigDecimal::of(1), $ring->segments[0]->rightSE->point->x);
-        $this->assertEquals(BigDecimal::of(0), $ring->segments[0]->rightSE->point->y);
+        $this->assertTrue(BigDecimal::of(0)->isEqualTo($ring->segments[0]->leftSE->point->x));
+        $this->assertTrue(BigDecimal::of(0)->isEqualTo($ring->segments[0]->leftSE->point->y));
+        $this->assertTrue(BigDecimal::of(1)->isEqualTo($ring->segments[0]->rightSE->point->x));
+        $this->assertTrue(BigDecimal::of(0)->isEqualTo($ring->segments[0]->rightSE->point->y));
         // Add similar assertions for other segments
     }
 
@@ -181,8 +181,8 @@ class GeometryInputTest extends TestCase
         $lastSegment = end($ring->segments);
 
         // Fix: Check leftSE instead of rightSE
-        $this->assertEquals(BigDecimal::of(0), $lastSegment->leftSE->point->x);
-        $this->assertEquals(BigDecimal::of(0), $lastSegment->leftSE->point->y);
+        $this->assertTrue(BigDecimal::of(0)->isEqualTo($lastSegment->leftSE->point->x));
+        $this->assertTrue(BigDecimal::of(0)->isEqualTo($lastSegment->leftSE->point->y));
     }
 
     public function test_ring_in_with_invalid_coordinate_types(): void
@@ -209,7 +209,7 @@ class GeometryInputTest extends TestCase
         $ring = new RingIn($geom, $poly, true);
 
         $this->assertCount(3, $ring->segments); // Only x, y should be used
-        $this->assertEquals(BigDecimal::of(0), $ring->segments[0]->leftSE->point->x);
-        $this->assertEquals(BigDecimal::of(0), $ring->segments[0]->leftSE->point->y);
+        $this->assertTrue(BigDecimal::of(0)->isEqualTo($ring->segments[0]->leftSE->point->x));
+        $this->assertTrue(BigDecimal::of(0)->isEqualTo($ring->segments[0]->leftSE->point->y));
     }
 }

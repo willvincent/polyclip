@@ -31,14 +31,13 @@ class MultiPolyIn
             throw new InvalidArgumentException('Input geometry is not a valid Polygon or MultiPolygon');
         }
 
-        // If $geom is a single polygon (array of rings), don't wrap it further
-        // Check if $geom[0][0] is an array of coordinates (i.e., a ring)
-        if (isset($geom[0][0]) && is_array($geom[0][0]) && is_numeric($geom[0][0][0])) {
-            // This is a Polygon: [[[x, y], ...], ...]
+        // Check if $geom represents a Polygon (array of rings) or MultiPolygon (array of polygons)
+        if (isset($geom[0][0][0]) && $geom[0][0][0] instanceof BigDecimal) {
+            // Polygon: [[[BD(x), BD(y)], ...], ...]
             $poly = new PolyIn($geom, $this);
             $this->polys = [$poly];
         } else {
-            // This is a MultiPolygon: [[[[x, y], ...]], ...]
+            // MultiPolygon: [[[[BD(x), BD(y)], ...]], ...]
             $this->polys = [];
             for ($i = 0, $iMax = count($geom); $i < $iMax; $i++) {
                 $poly = new PolyIn($geom[$i], $this);

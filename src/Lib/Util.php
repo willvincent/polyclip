@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Polyclip\Lib;
 
 use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 use SplayTree\SplayTree;
 
 class Util
@@ -46,26 +47,43 @@ class Util
             };
         }
 
-        if (self::$xTree === null) {
-            self::$xTree = new SplayTree(self::comparator($epsilon));
-        }
-        if (self::$yTree === null) {
-            self::$yTree = new SplayTree(self::comparator($epsilon));
-        }
+        $epsilonDecimal = BigDecimal::of($epsilon);
 
-        $snap = function (Vector $vector): Vector {
-            $snappedX = self::$xTree->insert($vector->x)->data;
-            $snappedY = self::$yTree->insert($vector->y)->data;
-            $key = "$snappedX,$snappedY";
+        //        if (self::$xTree === null) {
+        //            self::$xTree = new SplayTree(self::comparator($epsilon));
+        //        }
+        //        if (self::$yTree === null) {
+        //            self::$yTree = new SplayTree(self::comparator($epsilon));
+        //        }
+        //
+        //        $snap = function (Vector $vector): Vector {
+        //            $snappedX = self::$xTree->insert($vector->x)->data;
+        //            $snappedY = self::$yTree->insert($vector->y)->data;
+        //            $key = "$snappedX,$snappedY";
+        //            if (! isset(self::$pointCache[$key])) {
+        //                self::$pointCache[$key] = new Vector($snappedX, $snappedY);
+        //            }
+        //
+        //            return self::$pointCache[$key];
+        //        };
+        //        // Initialize with [0,0]
+        //        $snap(new Vector(BigDecimal::zero(), BigDecimal::zero()));
+
+        $snap = function (Vector $vector) use ($epsilonDecimal): Vector {
+            // Snap x and y to the nearest grid point (floor division)
+            $x = $vector->x->dividedBy($epsilonDecimal, 0, RoundingMode::DOWN)->multipliedBy($epsilonDecimal);
+            $y = $vector->y->dividedBy($epsilonDecimal, 0, RoundingMode::DOWN)->multipliedBy($epsilonDecimal);
+            // Check if this point already exists in the cache
+            $key = "{$x},{$y}";
             if (! isset(self::$pointCache[$key])) {
-                self::$pointCache[$key] = new Vector($snappedX, $snappedY);
+//                error_log('New point: '.$key);
+                self::$pointCache[$key] = new Vector($x, $y);
+            } else {
+//                error_log('Existing point: '.$key);
             }
 
             return self::$pointCache[$key];
         };
-
-        // Initialize with [0,0]
-        $snap(new Vector(BigDecimal::zero(), BigDecimal::zero()));
 
         return $snap;
     }

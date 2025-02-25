@@ -47,9 +47,7 @@ class RingOut
             $intersectionLEs = [];
             $event = $segment->leftSE;
             $nextEvent = $segment->rightSE;
-            //            error_log("Starting ring from segment {$segment->id} at [{$segment->leftSE->point->x}, {$segment->leftSE->point->y}]");
             while (true) {
-                //                error_log("Current event at [{$event->point->x}, {$event->point->y}]");
                 $events[] = $event;
                 $prevEvent = $event;
                 $event = $nextEvent;
@@ -61,6 +59,10 @@ class RingOut
                 while (true) {
                     $availableLEs = $event->getAvailableLinkedEvents();
                     if (empty($availableLEs)) {
+//                        error_log("No available events at [{$event->point->x}, {$event->point->y}]");
+                        foreach ($event->point->events as $evt) {
+//                            error_log('Event: isLeft='.($evt->isLeft ? '1' : '').', inResult='.($evt->segment->isInResult() ? '1' : '').', ringOut='.($evt->segment->ringOut ? 'set' : 'null').', consumedBy='.($evt->consumedBy ? 'set' : 'null'));
+                        }
                         throw new \RuntimeException('Unable to complete output ring');
                     }
                     if (count($availableLEs) === 1) {

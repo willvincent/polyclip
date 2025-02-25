@@ -304,6 +304,9 @@ class Segment
         }
 
         $point = Vector::intersection($tlp, $this->vector(), $olp, $other->vector());
+        if ($point !== null) {
+//            error_log("Intersection at [{$point->x}, {$point->y}] between segments {$this->id} and {$other->id}");
+        }
         if ($point === null || ! $bboxOverlap->pointInBbox($point)) {
             return null;
         }
@@ -319,8 +322,6 @@ class Segment
     public function split(Vector $point): array
     {
         $newEvents = [];
-        $alreadyLinked = $point->events !== null;
-
         $newLeftSE = new SweepEvent($point, true);
         $newRightSE = new SweepEvent($point, false);
         $oldRightSE = $this->rightSE;
@@ -328,6 +329,13 @@ class Segment
         $newEvents[] = $newRightSE;
         $newEvents[] = $newLeftSE;
         $newSeg = new Segment($newLeftSE, $oldRightSE, array_slice($this->rings, 0), array_slice($this->windings, 0));
+
+        // Link new events to existing ones at the same point
+        foreach ($point->events as $evt) {
+            if ($evt !== $newLeftSE && $evt->point->x->isEqualTo($point->x) && $evt->point->y->isEqualTo($point->y)) {
+                $newLeftSE->link($evt);
+            }
+        }
 
         if (SweepEvent::comparePoints($newSeg->leftSE->point, $newSeg->rightSE->point) > 0) {
             $newSeg->swapEvents();
