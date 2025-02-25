@@ -6,7 +6,7 @@
         "ext-bcmath": "*",
         "php": "^8.2",
         "jmikola/geojson": "^1.0",
-        "willvincent/splaytree": "^1.1",
+        "willvincent/splaytree": "^1.3",
         "brick/math": "^0.12.1"
     },
     "license": "MIT",
