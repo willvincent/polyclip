@@ -1,0 +1,28 @@
+{
+    "name": "will/polyclip",
+    "description": "PHP port of polyclip-ts.",
+    "type": "library",
+    "require": {
+        "ext-bcmath": "*",
+        "php": "^8.2",
+        "jmikola/geojson": "^1.0",
+        "willvincent/splaytree": "^1.1",
+        "brick/math": "^0.12.1"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Polyclip\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Will Vincent",
+            "email": "will@willvincent.com"
+        }
+    ],
+    "require-dev": {
+        "laravel/pint": "^1.21",
+        "phpunit/phpunit": "^12.0"
+    }
+}
