@@ -31,7 +31,7 @@ class RingIn
      */
     public function __construct(array $geomRing, PolyIn $poly, bool $isExterior)
     {
-        if (empty($geomRing)) {
+        if (empty($geomRing) || count($geomRing) < 3) {
             throw new \InvalidArgumentException('Input geometry is not a valid Polygon or MultiPolygon');
         }
 
@@ -40,7 +40,7 @@ class RingIn
         $this->segments = [];
 
         // Validate first point
-        if (count($geomRing[0]) !== 2 || ! ($geomRing[0][0] instanceof BigDecimal) || ! ($geomRing[0][1] instanceof BigDecimal)) {
+        if (count($geomRing[0]) < 2 || ! ($geomRing[0][0] instanceof BigDecimal) || ! ($geomRing[0][1] instanceof BigDecimal)) {
             throw new \InvalidArgumentException('Input geometry is not a valid Polygon or MultiPolygon');
         }
 
@@ -53,7 +53,7 @@ class RingIn
 
         $prevPoint = $firstPoint;
         for ($i = 1, $iMax = count($geomRing); $i < $iMax; $i++) {
-            if (count($geomRing[$i]) !== 2 || ! ($geomRing[$i][0] instanceof BigDecimal) || ! ($geomRing[$i][1] instanceof BigDecimal)) {
+            if (count($geomRing[$i]) < 2 || ! ($geomRing[$i][0] instanceof BigDecimal) || ! ($geomRing[$i][1] instanceof BigDecimal)) {
                 throw new \InvalidArgumentException('Input geometry is not a valid Polygon or MultiPolygon');
             }
             $point = $snap(new Vector($geomRing[$i][0], $geomRing[$i][1]));
@@ -67,7 +67,7 @@ class RingIn
         }
 
         // Close the ring if the last point is not the same as the first
-        if (! $firstPoint->x->isEqualTo($prevPoint->x) || ! $firstPoint->y->isEqualTo($prevPoint->y)) {
+        if (!$firstPoint->x->isEqualTo($prevPoint->x) || !$firstPoint->y->isEqualTo($prevPoint->y)) {
             $this->segments[] = Segment::fromRing($prevPoint, $firstPoint, $this);
         }
     }

@@ -46,8 +46,8 @@ class Vector
         );
 
         return static::crossProduct($vectorAngle, $vectorBase)
-            ->dividedBy(static::length($vectorAngle))
-            ->dividedBy(static::length($vectorBase));
+            ->dividedBy(static::length($vectorAngle), 10)
+            ->dividedBy(static::length($vectorBase), 10);
     }
 
     public static function cosineOfAngle(Vector $shared, Vector $base, Vector $angle): BigDecimal
@@ -63,8 +63,8 @@ class Vector
         );
 
         return static::dotProduct($vectorAngle, $vectorBase)
-            ->dividedBy(static::length($vectorAngle))
-            ->dividedBy(static::length($vectorBase));
+            ->dividedBy(static::length($vectorAngle), 10)
+            ->dividedBy(static::length($vectorBase), 10);
     }
 
     public static function horizontalIntersection(Vector $point, Vector $vector, BigDecimal $y): ?Vector
@@ -74,7 +74,7 @@ class Vector
         }
 
         return new Vector(
-            x: $point->x->plus(($vector->x->dividedBy($vector->y))->multipliedBy($y->minus($point->y))),
+            x: $point->x->plus(($vector->x->dividedBy($vector->y, 10))->multipliedBy($y->minus($point->y))),
             y: $y,
         );
     }
@@ -87,7 +87,7 @@ class Vector
 
         return new Vector(
             x: $x,
-            y: $point->y->plus(($vector->y->dividedBy($vector->x))->multipliedBy($x->minus($point->x))),
+            y: $point->y->plus(($vector->y->dividedBy($vector->x, 10))->multipliedBy($x->minus($point->x))),
         );
     }
 
@@ -121,8 +121,8 @@ class Vector
             x: $point2->x->minus($point1->x),
             y: $point2->y->minus($point1->y),
         );
-        $d1 = static::crossProduct($vector, $vector1)->dividedBy($cross);
-        $d2 = static::crossProduct($vector, $vector2)->dividedBy($cross);
+        $d1 = static::crossProduct($vector, $vector1)->dividedBy($cross, 10);
+        $d2 = static::crossProduct($vector, $vector2)->dividedBy($cross, 10);
 
         // take the average of the two calculations to minimize rounding error
         $x1 = $point1->x->plus($d2->multipliedBy($vector1->x));
@@ -130,8 +130,8 @@ class Vector
         $y1 = $point1->y->plus($d2->multipliedBy($vector1->y));
         $y2 = $point2->y->plus($d1->multipliedBy($vector2->y));
 
-        $x = ($x1->plus($x2))->dividedBy(2);
-        $y = ($y1->plus($y2))->dividedBy(2);
+        $x = ($x1->plus($x2))->dividedBy(2, 10);
+        $y = ($y1->plus($y2))->dividedBy(2, 10);
 
         return new Vector($x, $y);
     }
