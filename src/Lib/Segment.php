@@ -66,7 +66,7 @@ class Segment
         $this->windings = $windings;
     }
 
-    public static function fromRing(Vector $pt1, Vector $pt2, RingIn $ring): Segment
+    public static function fromRing(Vector $pt1, Vector $pt2, ?RingIn $ring): Segment
     {
         $cmpPts = SweepEvent::comparePoints($pt1, $pt2);
         if ($cmpPts < 0) {

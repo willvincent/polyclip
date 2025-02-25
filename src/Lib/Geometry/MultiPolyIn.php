@@ -33,7 +33,7 @@ class MultiPolyIn
 
         // If $geom is a single polygon (array of rings), don't wrap it further
         // Check if $geom[0][0] is an array of coordinates (i.e., a ring)
-        if (isset($geom[0][0]) && is_array($geom[0][0]) && isset($geom[0][0][0])) {
+        if (isset($geom[0][0]) && is_array($geom[0][0]) && is_numeric($geom[0][0][0])) {
             // This is a Polygon: [[[x, y], ...], ...]
             $poly = new PolyIn($geom, $this);
             $this->polys = [$poly];
