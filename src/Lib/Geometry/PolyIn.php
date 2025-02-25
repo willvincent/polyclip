@@ -10,20 +10,24 @@ use Polyclip\Lib\Vector;
 class PolyIn
 {
     public MultiPolyIn $multiPoly;
+
     public RingIn $exteriorRing;
+
     /** @var RingIn[] */
     public array $interiorRings = [];
+
     public Bbox $bbox;
 
     /**
-     * @param BigDecimal $geomPoly Array of rings, each ring being an array of [x, y] coordinates
-     * @param MultiPolyIn $multiPoly The parent multi-polygon
+     * @param  mixed[]  $geomPoly  Array of rings, each ring being an array of [x, y] coordinates
+     * @param  MultiPolyIn  $multiPoly  The parent multi-polygon
+     *
      * @throws \InvalidArgumentException If geometry is invalid
      */
     public function __construct(array $geomPoly, MultiPolyIn $multiPoly)
     {
-        if (!is_array($geomPoly) || empty($geomPoly)) {
-            throw new \InvalidArgumentException("Input geometry is not a valid Polygon or MultiPolygon");
+        if (empty($geomPoly)) {
+            throw new \InvalidArgumentException('Input geometry is not a valid Polygon or MultiPolygon');
         }
         $this->exteriorRing = new RingIn($geomPoly[0], $this, true);
         $this->bbox = new Bbox(
@@ -41,8 +45,6 @@ class PolyIn
 
     /**
      * Updates the bounding box with a ring's bounding box.
-     *
-     * @param RingIn $ring
      */
     private function updateBbox(RingIn $ring): void
     {
@@ -83,6 +85,7 @@ class PolyIn
         foreach ($this->interiorRings as $ring) {
             $sweepEvents = array_merge($sweepEvents, $ring->getSweepEvents());
         }
+
         return $sweepEvents;
     }
 }

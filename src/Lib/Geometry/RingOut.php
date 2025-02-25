@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Polyclip\Lib\Geometry;
 
+use Polyclip\Lib\Segment;
 use Polyclip\Lib\SweepEvent;
 use Polyclip\Lib\Util;
 
@@ -9,10 +12,16 @@ class RingOut
 {
     /** @var SweepEvent[] */
     public array $events;
+
     public ?PolyOut $poly = null;
+
     private ?bool $_isExteriorRing = null;
+
     private ?RingOut $_enclosingRing = null;
 
+    /**
+     * @param SweepEvent[] $events
+     */
     public function __construct(array $events)
     {
         $this->events = $events;
@@ -21,11 +30,16 @@ class RingOut
         }
     }
 
-    public static function factory(array $allSegments): array {
+    /**
+     * @param Segment[] $allSegments
+     * @return mixed[]
+     */
+    public static function factory(array $allSegments): array
+    {
         $ringsOut = [];
         $processedSegments = [];
         foreach ($allSegments as $segment) {
-            if (!$segment->isInResult() || $segment->ringOut !== null || isset($processedSegments[$segment->id])) {
+            if (! $segment->isInResult() || $segment->ringOut !== null || isset($processedSegments[$segment->id])) {
                 continue;
             }
             $events = [];
@@ -33,9 +47,9 @@ class RingOut
             $intersectionLEs = [];
             $event = $segment->leftSE;
             $nextEvent = $segment->rightSE;
-            error_log("Starting ring from segment {$segment->id} at [{$segment->leftSE->point->x}, {$segment->leftSE->point->y}]");
+            //            error_log("Starting ring from segment {$segment->id} at [{$segment->leftSE->point->x}, {$segment->leftSE->point->y}]");
             while (true) {
-                error_log("Current event at [{$event->point->x}, {$event->point->y}]");
+                //                error_log("Current event at [{$event->point->x}, {$event->point->y}]");
                 $events[] = $event;
                 $prevEvent = $event;
                 $event = $nextEvent;
@@ -47,7 +61,7 @@ class RingOut
                 while (true) {
                     $availableLEs = $event->getAvailableLinkedEvents();
                     if (empty($availableLEs)) {
-                        throw new \RuntimeException("Unable to complete output ring");
+                        throw new \RuntimeException('Unable to complete output ring');
                     }
                     if (count($availableLEs) === 1) {
                         $nextEvent = $availableLEs[0]->otherSE;
@@ -66,6 +80,7 @@ class RingOut
                         $ringEvents = array_splice($events, $intersection['index']);
                         array_unshift($ringEvents, $ringEvents[0]->otherSE);
                         $ringsOut[] = new RingOut(array_reverse($ringEvents));
+
                         continue;
                     }
                     $intersectionLEs[] = ['index' => count($events), 'point' => $event->point];
@@ -76,13 +91,20 @@ class RingOut
                 }
             }
         }
+
         return $ringsOut;
     }
 
-    public function getGeom(): ?array {
+    /**
+     * @return mixed[]|null
+     */
+    public function getGeom(): ?array
+    {
         $orient = Util::orientation();
         $numEvents = count($this->events);
-        if ($numEvents < 3) return null;
+        if ($numEvents < 3) {
+            return null;
+        }
 
         $points = [];
         $prevPt = $this->events[$numEvents - 1]->point; // Start with the last point for wrap-around
@@ -96,7 +118,9 @@ class RingOut
             }
         }
 
-        if (count($points) < 3) return null;
+        if (count($points) < 3) {
+            return null;
+        }
 
         // Close the ring if necessary
         if ($points[0] !== $points[count($points) - 1]) {
@@ -111,6 +135,7 @@ class RingOut
         foreach ($points as $pt) {
             $geom[] = [$pt->x->toFloat(), $pt->y->toFloat()];
         }
+
         return $geom;
     }
 
@@ -118,8 +143,9 @@ class RingOut
     {
         if ($this->_isExteriorRing === null) {
             $enclosing = $this->enclosingRing();
-            $this->_isExteriorRing = $enclosing ? !$enclosing->isExteriorRing() : true;
+            $this->_isExteriorRing = $enclosing ? ! $enclosing->isExteriorRing() : true;
         }
+
         return $this->_isExteriorRing;
     }
 
@@ -128,6 +154,7 @@ class RingOut
         if ($this->_enclosingRing === null) {
             $this->_enclosingRing = $this->_calcEnclosingRing();
         }
+
         return $this->_enclosingRing;
     }
 
@@ -136,15 +163,21 @@ class RingOut
         $leftMostEvt = $this->events[0];
         for ($i = 1, $iMax = count($this->events); $i < $iMax; $i++) {
             $evt = $this->events[$i];
-            if (SweepEvent::compare($leftMostEvt, $evt) > 0) $leftMostEvt = $evt;
+            if (SweepEvent::compare($leftMostEvt, $evt) > 0) {
+                $leftMostEvt = $evt;
+            }
         }
 
         $prevSeg = $leftMostEvt->segment->prevInResult();
         $prevPrevSeg = $prevSeg ? $prevSeg->prevInResult() : null;
 
         while (true) {
-            if ($prevSeg === null) return null;
-            if ($prevPrevSeg === null) return $prevSeg->ringOut;
+            if ($prevSeg === null) {
+                return null;
+            }
+            if ($prevPrevSeg === null) {
+                return $prevSeg->ringOut;
+            }
 
             if ($prevPrevSeg->ringOut !== $prevSeg->ringOut) {
                 if ($prevPrevSeg->ringOut?->enclosingRing() !== $prevSeg->ringOut) {
@@ -157,11 +190,5 @@ class RingOut
             $prevSeg = $prevPrevSeg->prevInResult();
             $prevPrevSeg = $prevSeg ? $prevSeg->prevInResult() : null;
         }
-    }
-
-    function isCollinear($p1, $p2, $p3) {
-        // Cross product to check collinearity
-        $cross = ($p2->x - $p1->x) * ($p3->y - $p1->y) - ($p2->y - $p1->y) * ($p3->x - $p1->x);
-        return $cross === 0;
     }
 }

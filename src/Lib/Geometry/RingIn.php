@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Polyclip\Lib\Geometry;
 
 use Brick\Math\BigDecimal;
@@ -12,21 +14,25 @@ use Polyclip\Lib\Vector;
 class RingIn
 {
     public PolyIn $poly;
+
     public bool $isExterior;
+
     /** @var Segment[] */
     public array $segments = [];
+
     public Bbox $bbox;
 
     /**
-     * @param BigDecimal $geomRing Array of [x, y] coordinates
-     * @param PolyIn $poly The parent polygon
-     * @param bool $isExterior Whether this is an exterior ring
+     * @param  mixed[]  $geomRing  Array of [x, y] coordinates
+     * @param  PolyIn  $poly  The parent polygon
+     * @param  bool  $isExterior  Whether this is an exterior ring
+     *
      * @throws \InvalidArgumentException If geometry is invalid
      */
     public function __construct(array $geomRing, PolyIn $poly, bool $isExterior)
     {
         if (empty($geomRing)) {
-            throw new \InvalidArgumentException("Input geometry is not a valid Polygon or MultiPolygon");
+            throw new \InvalidArgumentException('Input geometry is not a valid Polygon or MultiPolygon');
         }
 
         $this->poly = $poly;
@@ -34,8 +40,8 @@ class RingIn
         $this->segments = [];
 
         // Validate first point
-        if (count($geomRing[0]) !== 2 || !($geomRing[0][0] instanceof BigDecimal) || !($geomRing[0][1] instanceof BigDecimal)) {
-            throw new \InvalidArgumentException("Input geometry is not a valid Polygon or MultiPolygon");
+        if (count($geomRing[0]) !== 2 || ! ($geomRing[0][0] instanceof BigDecimal) || ! ($geomRing[0][1] instanceof BigDecimal)) {
+            throw new \InvalidArgumentException('Input geometry is not a valid Polygon or MultiPolygon');
         }
 
         $snap = Util::createSnap();
@@ -47,8 +53,8 @@ class RingIn
 
         $prevPoint = $firstPoint;
         for ($i = 1, $iMax = count($geomRing); $i < $iMax; $i++) {
-            if (count($geomRing[$i]) !== 2 || !($geomRing[$i][0] instanceof BigDecimal) || !($geomRing[$i][1] instanceof BigDecimal)) {
-                throw new \InvalidArgumentException("Input geometry is not a valid Polygon or MultiPolygon");
+            if (count($geomRing[$i]) !== 2 || ! ($geomRing[$i][0] instanceof BigDecimal) || ! ($geomRing[$i][1] instanceof BigDecimal)) {
+                throw new \InvalidArgumentException('Input geometry is not a valid Polygon or MultiPolygon');
             }
             $point = $snap(new Vector($geomRing[$i][0], $geomRing[$i][1]));
             // Skip repeated points
@@ -61,15 +67,13 @@ class RingIn
         }
 
         // Close the ring if the last point is not the same as the first
-        if (!$firstPoint->x->isEqualTo($prevPoint->x) || !$firstPoint->y->isEqualTo($prevPoint->y)) {
+        if (! $firstPoint->x->isEqualTo($prevPoint->x) || ! $firstPoint->y->isEqualTo($prevPoint->y)) {
             $this->segments[] = Segment::fromRing($prevPoint, $firstPoint, $this);
         }
     }
 
     /**
      * Updates the bounding box with a new point.
-     *
-     * @param Vector $point
      */
     private function updateBbox(Vector $point): void
     {
@@ -111,13 +115,12 @@ class RingIn
             $sweepEvents[] = $segment->leftSE;
             $sweepEvents[] = $segment->rightSE;
         }
+
         return $sweepEvents;
     }
 
     /**
      * Gets the lower left point of the bounding box.
-     *
-     * @return Vector
      */
     public function getLowerLeft(): Vector
     {
@@ -126,8 +129,6 @@ class RingIn
 
     /**
      * Gets the upper right point of the bounding box.
-     *
-     * @return Vector
      */
     public function getUpperRight(): Vector
     {

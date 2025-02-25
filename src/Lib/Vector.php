@@ -1,82 +1,98 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Polyclip\Lib;
 
 use Brick\Math\BigDecimal;
 
 class Vector
 {
+    /**
+     * @param BigDecimal $x
+     * @param BigDecimal $y
+     * @param SweepEvent[]|null $events
+     */
     public function __construct(
         public BigDecimal $x,
         public BigDecimal $y,
         public ?array $events = null
     ) {}
 
-    public static function crossProduct(Vector $vector1, Vector $vector2): BigDecimal {
-        return ($vector1->x->multipliedBy($vector2->y))->minus($vector1->y->multipliedBy($vector2->x));
+    public static function crossProduct(Vector $vector1, Vector $vector2): BigDecimal
+    {
+        return $vector1->x->multipliedBy($vector2->y)->minus($vector1->y->multipliedBy($vector2->x));
     }
 
-    public static function dotProduct(Vector $vector1, Vector $vector2): BigDecimal {
-        return ($vector1->x->multipliedBy($vector2->x))->plus($vector1->y->multipliedBy($vector2->y));
+    public static function dotProduct(Vector $vector1, Vector $vector2): BigDecimal
+    {
+        return $vector1->x->multipliedBy($vector2->x)->plus($vector1->y->multipliedBy($vector2->y));
     }
 
-    public static function length(Vector $vector): BigDecimal {
+    public static function length(Vector $vector): BigDecimal
+    {
         return static::dotProduct($vector, $vector)->sqrt(10);
     }
 
-    public static function sineOfAngle(Vector $shared, Vector $base, Vector $angle): BigDecimal {
-        $vectorBase = new static(
+    public static function sineOfAngle(Vector $shared, Vector $base, Vector $angle): BigDecimal
+    {
+        $vectorBase = new Vector(
             x: $base->x->minus($shared->x),
             y: $base->y->minus($shared->y),
         );
-        $vectorAngle = new static(
+        $vectorAngle = new Vector(
             x: $angle->x->minus($shared->x),
             y: $angle->y->minus($shared->y),
         );
+
         return static::crossProduct($vectorAngle, $vectorBase)
             ->dividedBy(static::length($vectorAngle))
             ->dividedBy(static::length($vectorBase));
     }
 
-    public static function cosineOfAngle(Vector $shared, Vector $base, Vector $angle): BigDecimal {
-        $vectorBase = new static(
+    public static function cosineOfAngle(Vector $shared, Vector $base, Vector $angle): BigDecimal
+    {
+        $vectorBase = new Vector(
             x: $base->x->minus($shared->x),
             y: $base->y->minus($shared->y),
         );
 
-        $vectorAngle = new static(
+        $vectorAngle = new Vector(
             x: $angle->x->minus($shared->x),
             y: $angle->y->minus($shared->y),
         );
 
         return static::dotProduct($vectorAngle, $vectorBase)
-                    ->dividedBy(static::length($vectorAngle))
-                    ->dividedBy(static::length($vectorBase));
+            ->dividedBy(static::length($vectorAngle))
+            ->dividedBy(static::length($vectorBase));
     }
 
-    public static function horizontalIntersection(Vector $point, Vector $vector, BigDecimal $y): ?Vector {
+    public static function horizontalIntersection(Vector $point, Vector $vector, BigDecimal $y): ?Vector
+    {
         if ($vector->y->isZero()) {
             return null;
         }
 
-        return new static(
+        return new Vector(
             x: $point->x->plus(($vector->x->dividedBy($vector->y))->multipliedBy($y->minus($point->y))),
             y: $y,
         );
     }
 
-    public static function verticalIntersection(Vector $point, Vector $vector, BigDecimal $x): ?Vector {
+    public static function verticalIntersection(Vector $point, Vector $vector, BigDecimal $x): ?Vector
+    {
         if ($vector->x->isZero()) {
             return null;
         }
 
-        return new static(
+        return new Vector(
             x: $x,
             y: $point->y->plus(($vector->y->dividedBy($vector->x))->multipliedBy($x->minus($point->x))),
         );
     }
 
-    public static function intersection (Vector $point1, Vector $vector1, Vector $point2, Vector $vector2): ?Vector {
+    public static function intersection(Vector $point1, Vector $vector1, Vector $point2, Vector $vector2): ?Vector
+    {
         // take some shortcuts for vertical and horizontal lines
         // this also ensures we don't calculate an intersection and then discover
         // it's actually outside the bounding box of the line
@@ -101,7 +117,7 @@ class Vector
             return null;
         }
 
-        $vector = new static(
+        $vector = new Vector(
             x: $point2->x->minus($point1->x),
             y: $point2->y->minus($point1->y),
         );
@@ -117,11 +133,12 @@ class Vector
         $x = ($x1->plus($x2))->dividedBy(2);
         $y = ($y1->plus($y2))->dividedBy(2);
 
-        return new static($x, $y);
+        return new Vector($x, $y);
     }
 
-    public static function perpendicular(Vector $vector) {
-        return new static(
+    public static function perpendicular(Vector $vector): Vector
+    {
+        return new Vector(
             x: $vector->y->negated(),
             y: $vector->x,
         );

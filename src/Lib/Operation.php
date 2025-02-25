@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Polyclip\Lib;
 
 use Polyclip\Lib\Geometry\MultiPolyIn;
@@ -10,8 +12,17 @@ use SplayTree\SplayTree;
 class Operation
 {
     public static string $type;
+
     public static int $numMultiPolys;
 
+    /**
+     * @param string $type
+     * @param mixed[] $geom
+     * @param mixed[] ...$moreGeoms
+     * @return mixed[]
+     * @throws \Brick\Math\Exception\DivisionByZeroException
+     * @throws \Brick\Math\Exception\NumberFormatException
+     */
     public static function run(string $type, array $geom, array ...$moreGeoms): array
     {
         self::$type = $type;
@@ -24,7 +35,7 @@ class Operation
         self::$numMultiPolys = count($multipolys);
 
         // BBox optimization for difference
-        if ($type === "difference") {
+        if ($type === 'difference') {
             $subject = $multipolys[0];
             $i = 1;
             while ($i < count($multipolys)) {
@@ -37,7 +48,7 @@ class Operation
         }
 
         // BBox optimization for intersection
-        if ($type === "intersection") {
+        if ($type === 'intersection') {
             for ($i = 0; $i < count($multipolys); $i++) {
                 for ($j = $i + 1; $j < count($multipolys); $j++) {
                     if ($multipolys[$i]->bbox->getBboxOverlap($multipolys[$i]->bbox, $multipolys[$j]->bbox) === null) {
@@ -58,7 +69,7 @@ class Operation
 
         // Process events with sweep line
         $sweepLine = new SweepLine($queue);
-        while (!$queue->isEmpty()) {
+        while (! $queue->isEmpty()) {
             $event = $queue->min();
             $queue->delete($event);
             $newEvents = $sweepLine->process($event);
@@ -75,6 +86,7 @@ class Operation
         // Construct output geometry
         $ringsOut = RingOut::factory($sweepLine->segments);
         $result = new MultiPolyOut($ringsOut);
+
         return $result->getGeom();
     }
 }

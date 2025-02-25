@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Polyclip\Lib\Geometry;
 
 use Brick\Math\BigDecimal;
@@ -11,48 +13,51 @@ use Polyclip\Lib\Vector;
 class MultiPolyIn
 {
     public bool $isSubject;
+
     /** @var PolyIn[] */
     public array $polys = [];
+
     public Bbox $bbox;
 
     /**
-     * @param BigDecimal $geom Geometry (Polygon or MultiPolygon)
-     * @param bool $isSubject Whether this is the subject geometry
-     * @throws InvalidArgumentException If geometry is invalid
+     * @param mixed[] $geom
+     * @param bool $isSubject
+     * @throws \Brick\Math\Exception\DivisionByZeroException
+     * @throws \Brick\Math\Exception\NumberFormatException
      */
     public function __construct(array $geom, bool $isSubject)
     {
-        if (!is_array($geom)) {
-            throw new InvalidArgumentException("Input geometry is not a valid Polygon or MultiPolygon");
+        if (empty($geom)) {
+            throw new InvalidArgumentException('Input geometry is not a valid Polygon or MultiPolygon');
         }
 
-        // If the input looks like a polygon, convert it to a multi-polygon
-        try {
-            if (isset($geom[0][0][0]) && $geom[0][0][0] instanceof BigDecimal) {
-                $geom = [$geom];
+        // If $geom is a single polygon (array of rings), don't wrap it further
+        // Check if $geom[0][0] is an array of coordinates (i.e., a ring)
+        if (isset($geom[0][0]) && is_array($geom[0][0]) && isset($geom[0][0][0])) {
+            // This is a Polygon: [[[x, y], ...], ...]
+            $poly = new PolyIn($geom, $this);
+            $this->polys = [$poly];
+        } else {
+            // This is a MultiPolygon: [[[[x, y], ...]], ...]
+            $this->polys = [];
+            for ($i = 0, $iMax = count($geom); $i < $iMax; $i++) {
+                $poly = new PolyIn($geom[$i], $this);
+                $this->polys[] = $poly;
             }
-        } catch (\Exception $e) {
-            // Handle malformed input or empty arrays
-            throw new InvalidArgumentException("Input geometry is not a valid Polygon or MultiPolygon");
         }
 
-        $this->polys = [];
         $this->bbox = new Bbox(
             new Vector(BigDecimal::of(PHP_FLOAT_MAX), BigDecimal::of(PHP_FLOAT_MAX)),
             new Vector(BigDecimal::of(-PHP_FLOAT_MAX), BigDecimal::of(-PHP_FLOAT_MAX))
         );
-        for ($i = 0, $iMax = count($geom); $i < $iMax; $i++) {
-            $poly = new PolyIn($geom[$i], $this);
+        foreach ($this->polys as $poly) {
             $this->updateBbox($poly);
-            $this->polys[] = $poly;
         }
         $this->isSubject = $isSubject;
     }
 
     /**
      * Updates the bounding box with a polygon's bounding box.
-     *
-     * @param PolyIn $poly
      */
     private function updateBbox(PolyIn $poly): void
     {
@@ -93,6 +98,7 @@ class MultiPolyIn
         foreach ($this->polys as $poly) {
             $sweepEvents = array_merge($sweepEvents, $poly->getSweepEvents());
         }
+
         return $sweepEvents;
     }
 }

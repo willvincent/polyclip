@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Polyclip\Lib;
 
 use Brick\Math\BigDecimal;
@@ -7,9 +9,12 @@ use SplayTree\SplayTree;
 
 class Util
 {
-    protected static $xTree;
-    protected static $yTree;
-    protected static $pointCache = [];
+    protected static SplayTree|null $xTree = null;
+
+    protected static SplayTree|null $yTree = null;
+
+    protected static mixed $pointCache = [];
+
     public static ?float $defaultEpsilon = null;
 
     public static function comparator(?float $epsilon = null): callable
@@ -22,6 +27,7 @@ class Util
         }
 
         $epsilonDecimal = BigDecimal::of($epsilon);
+
         return function (BigDecimal $a, BigDecimal $b) use ($epsilonDecimal): int {
             if ($b->minus($a)->abs()->compareTo($epsilonDecimal) <= 0) {
                 return 0;
@@ -51,9 +57,10 @@ class Util
             $snappedX = self::$xTree->insert($vector->x)->data;
             $snappedY = self::$yTree->insert($vector->y)->data;
             $key = "$snappedX,$snappedY";
-            if (!isset(self::$pointCache[$key])) {
+            if (! isset(self::$pointCache[$key])) {
                 self::$pointCache[$key] = new Vector($snappedX, $snappedY);
             }
+
             return self::$pointCache[$key];
         };
 
@@ -67,9 +74,11 @@ class Util
     {
         $epsilon = $epsilon ?? self::$defaultEpsilon;
         if (is_null($epsilon)) {
-            $almostCollinear = function(): bool { return false; };
+            $almostCollinear = function (): bool {
+                return false;
+            };
         } else {
-            $almostCollinear = function(
+            $almostCollinear = function (
                 BigDecimal $area2,
                 BigDecimal $ax,
                 BigDecimal $ay,
@@ -79,24 +88,24 @@ class Util
                 $epsilonDecimal = BigDecimal::of($epsilon);
 
                 return $area2->power(2)
-                             ->compareTo(
-                                $cx->minus($ax)
-                                   ->power(2)
-                                   ->plus($cy->minus($ay)->power(2))
-                                   ->multipliedBy($epsilonDecimal)
-                             ) <= 0;
+                    ->compareTo(
+                        $cx->minus($ax)
+                            ->power(2)
+                            ->plus($cy->minus($ay)->power(2))
+                            ->multipliedBy($epsilonDecimal)
+                    ) <= 0;
             };
         }
 
-        return function(Vector $a, Vector $b, Vector $c) use($almostCollinear): bool {
+        return function (Vector $a, Vector $b, Vector $c) use ($almostCollinear): int {
             $ax = $a->x;
             $ay = $a->y;
             $cx = $c->x;
             $cy = $c->y;
 
             $area2 = $ay->minus($cy)
-                        ->multipliedBy($b->x->minus($cx))
-                        ->minus($ax->minus($cx)->multipliedBy($b->y->minus($cy)));
+                ->multipliedBy($b->x->minus($cx))
+                ->minus($ax->minus($cx)->multipliedBy($b->y->minus($cy)));
 
             if ($almostCollinear($area2, $ax, $ay, $cx, $cy)) {
                 return 0;
@@ -106,10 +115,10 @@ class Util
         };
     }
 
-    public static function reset(): void {
+    public static function reset(): void
+    {
         self::$xTree = null;
         self::$yTree = null;
         self::$pointCache = [];
     }
-
 }

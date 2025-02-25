@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Polyclip\Lib;
 
 use SplayTree\SplayTree;
@@ -7,15 +9,24 @@ use SplayTree\SplayTree;
 class SweepLine
 {
     private SplayTree $queue;
+
     private SplayTree $tree;
+
+    /**
+     * @var Segment[]
+     */
     public array $segments = [];
 
-    public function __construct(SplayTree $queue, callable $comparator = null)
+    public function __construct(SplayTree $queue, ?callable $comparator = null)
     {
         $this->queue = $queue;
         $this->tree = new SplayTree($comparator ?? [Segment::class, 'compare']);
     }
 
+    /**
+     * @param SweepEvent $event
+     * @return SweepEvent[]
+     */
     public function process(SweepEvent $event): array
     {
         $segment = $event->segment;
@@ -28,6 +39,7 @@ class SweepLine
             } else {
                 $this->tree->delete($segment);
             }
+
             return $newEvents;
         }
 
@@ -53,10 +65,10 @@ class SweepLine
             if ($prevSeg) {
                 $prevInter = $prevSeg->getIntersection($segment);
                 if ($prevInter !== null) {
-                    if (!$segment->isAnEndpoint($prevInter)) {
+                    if (! $segment->isAnEndpoint($prevInter)) {
                         $prevMySplitter = $prevInter;
                     }
-                    if (!$prevSeg->isAnEndpoint($prevInter)) {
+                    if (! $prevSeg->isAnEndpoint($prevInter)) {
                         $newEventsFromSplit = $this->_splitSafely($prevSeg, $prevInter);
                         $newEvents = array_merge($newEvents, $newEventsFromSplit);
                     }
@@ -68,10 +80,10 @@ class SweepLine
             if ($nextSeg) {
                 $nextInter = $nextSeg->getIntersection($segment);
                 if ($nextInter !== null) {
-                    if (!$segment->isAnEndpoint($nextInter)) {
+                    if (! $segment->isAnEndpoint($nextInter)) {
                         $nextMySplitter = $nextInter;
                     }
-                    if (!$nextSeg->isAnEndpoint($nextInter)) {
+                    if (! $nextSeg->isAnEndpoint($nextInter)) {
                         $newEventsFromSplit = $this->_splitSafely($nextSeg, $nextInter);
                         $newEvents = array_merge($newEvents, $newEventsFromSplit);
                     }
@@ -97,7 +109,7 @@ class SweepLine
                 $newEvents = array_merge($newEvents, $newEventsFromSplit);
             }
 
-            if (!empty($newEvents)) {
+            if (! empty($newEvents)) {
                 $this->tree->delete($segment);
                 $newEvents[] = $event;
             } else {
@@ -109,11 +121,11 @@ class SweepLine
             if ($prevSeg && $nextSeg) {
                 $inter = $prevSeg->getIntersection($nextSeg);
                 if ($inter !== null) {
-                    if (!$prevSeg->isAnEndpoint($inter)) {
+                    if (! $prevSeg->isAnEndpoint($inter)) {
                         $newEventsFromSplit = $this->_splitSafely($prevSeg, $inter);
                         $newEvents = array_merge($newEvents, $newEventsFromSplit);
                     }
-                    if (!$nextSeg->isAnEndpoint($inter)) {
+                    if (! $nextSeg->isAnEndpoint($inter)) {
                         $newEventsFromSplit = $this->_splitSafely($nextSeg, $inter);
                         $newEvents = array_merge($newEvents, $newEventsFromSplit);
                     }
@@ -125,6 +137,11 @@ class SweepLine
         return $newEvents;
     }
 
+    /**
+     * @param Segment $segment
+     * @param Vector $point
+     * @return SweepEvent[]
+     */
     private function _splitSafely(Segment $segment, Vector $point): array
     {
         $this->tree->delete($segment);
@@ -135,6 +152,7 @@ class SweepLine
         if ($segment->consumedBy === null) {
             $this->tree->insert($segment);
         }
+
         return $newEvents;
     }
 }

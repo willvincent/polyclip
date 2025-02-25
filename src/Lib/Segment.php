@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Polyclip\Lib;
 
-use Brick\Math\BigDecimal;
 use Polyclip\Lib\Geometry\RingIn;
 use Polyclip\Lib\Geometry\RingOut;
 
@@ -11,18 +12,47 @@ class Segment
     private static int $segmentId = 0;
 
     public int $id;
+
     public SweepEvent $leftSE;
+
     public SweepEvent $rightSE;
+
+    /**
+     * @var mixed[]|null
+     */
     public ?array $rings = null; // Array of RingIn objects
+
+    /**
+     * @var mixed[]|null
+     */
     public ?array $windings = null; // Array of winding numbers
+
     public ?RingOut $ringOut = null;
+
     public ?Segment $consumedBy = null;
+
     public ?Segment $prev = null;
+
     private ?Segment $_prevInResult = null;
+
+    /**
+     * @var mixed[]|null
+     */
     private ?array $_beforeState = null; // [rings: RingIn[], windings: int[], multiPolys: MultiPolyIn[]]
+
+    /**
+     * @var mixed[]|null
+     */
     private ?array $_afterState = null;
+
     private ?bool $_isInResult = null;
 
+    /**
+     * @param SweepEvent $leftSE
+     * @param SweepEvent $rightSE
+     * @param mixed[] $rings
+     * @param mixed[] $windings
+     */
     public function __construct(SweepEvent $leftSE, SweepEvent $rightSE, array $rings, array $windings)
     {
         $this->id = ++self::$segmentId;
@@ -53,6 +83,7 @@ class Segment
 
         $leftSE = new SweepEvent($leftPt, true);
         $rightSE = new SweepEvent($rightPt, false);
+
         return new Segment($leftSE, $rightSE, [$ring], [$winding]);
     }
 
@@ -63,8 +94,12 @@ class Segment
         $arx = $a->rightSE->point->x;
         $brx = $b->rightSE->point->x;
 
-        if ($brx->isLessThan($alx)) return 1;
-        if ($arx->isLessThan($blx)) return -1;
+        if ($brx->isLessThan($alx)) {
+            return 1;
+        }
+        if ($arx->isLessThan($blx)) {
+            return -1;
+        }
 
         $aly = $a->leftSE->point->y;
         $bly = $b->leftSE->point->y;
@@ -72,61 +107,103 @@ class Segment
         $bry = $b->rightSE->point->y;
 
         if ($alx->isLessThan($blx)) {
-            if ($bly->isLessThan($aly) && $bly->isLessThan($ary)) return 1;
-            if ($bly->isGreaterThan($aly) && $bly->isGreaterThan($ary)) return -1;
+            if ($bly->isLessThan($aly) && $bly->isLessThan($ary)) {
+                return 1;
+            }
+            if ($bly->isGreaterThan($aly) && $bly->isGreaterThan($ary)) {
+                return -1;
+            }
 
             $aCmpBLeft = $a->comparePoint($b->leftSE->point);
-            if ($aCmpBLeft < 0) return 1;
-            if ($aCmpBLeft > 0) return -1;
+            if ($aCmpBLeft < 0) {
+                return 1;
+            }
+            if ($aCmpBLeft > 0) {
+                return -1;
+            }
 
             $bCmpARight = $b->comparePoint($a->rightSE->point);
-            if ($bCmpARight !== 0) return $bCmpARight;
+            if ($bCmpARight !== 0) {
+                return $bCmpARight;
+            }
 
             return -1;
         }
 
         if ($alx->isGreaterThan($blx)) {
-            if ($aly->isLessThan($bly) && $aly->isLessThan($bry)) return -1;
-            if ($aly->isGreaterThan($bly) && $aly->isGreaterThan($bry)) return 1;
+            if ($aly->isLessThan($bly) && $aly->isLessThan($bry)) {
+                return -1;
+            }
+            if ($aly->isGreaterThan($bly) && $aly->isGreaterThan($bry)) {
+                return 1;
+            }
 
             $bCmpALeft = $b->comparePoint($a->leftSE->point);
-            if ($bCmpALeft !== 0) return $bCmpALeft;
+            if ($bCmpALeft !== 0) {
+                return $bCmpALeft;
+            }
 
             $aCmpBRight = $a->comparePoint($b->rightSE->point);
-            if ($aCmpBRight < 0) return 1;
-            if ($aCmpBRight > 0) return -1;
+            if ($aCmpBRight < 0) {
+                return 1;
+            }
+            if ($aCmpBRight > 0) {
+                return -1;
+            }
 
             return 1;
         }
 
-        if ($aly->isLessThan($bly)) return -1;
-        if ($aly->isGreaterThan($bly)) return 1;
+        if ($aly->isLessThan($bly)) {
+            return -1;
+        }
+        if ($aly->isGreaterThan($bly)) {
+            return 1;
+        }
 
         if ($arx->isLessThan($brx)) {
             $bCmpARight = $b->comparePoint($a->rightSE->point);
-            if ($bCmpARight !== 0) return $bCmpARight;
+            if ($bCmpARight !== 0) {
+                return $bCmpARight;
+            }
         }
 
         if ($arx->isGreaterThan($brx)) {
             $aCmpBRight = $a->comparePoint($b->rightSE->point);
-            if ($aCmpBRight < 0) return 1;
-            if ($aCmpBRight > 0) return -1;
+            if ($aCmpBRight < 0) {
+                return 1;
+            }
+            if ($aCmpBRight > 0) {
+                return -1;
+            }
         }
 
-        if (!$arx->isEqualTo($brx)) {
+        if (! $arx->isEqualTo($brx)) {
             $ay = $ary->minus($aly);
             $ax = $arx->minus($alx);
             $by = $bry->minus($bly);
             $bx = $brx->minus($blx);
-            if ($ay->isGreaterThan($ax) && $by->isLessThan($bx)) return 1;
-            if ($ay->isLessThan($ax) && $by->isGreaterThan($bx)) return -1;
+            if ($ay->isGreaterThan($ax) && $by->isLessThan($bx)) {
+                return 1;
+            }
+            if ($ay->isLessThan($ax) && $by->isGreaterThan($bx)) {
+                return -1;
+            }
         }
 
-        if ($arx->isGreaterThan($brx)) return 1;
-        if ($arx->isLessThan($brx)) return -1;
+        if ($arx->isGreaterThan($brx)) {
+            return 1;
+        }
+        if ($arx->isLessThan($brx)) {
+            return -1;
+        }
 
-        if ($ary->isLessThan($bry)) return -1;
-        if ($ary->isGreaterThan($bry)) return 1;
+        if ($ary->isLessThan($bry)) {
+            return -1;
+        }
+        if ($ary->isGreaterThan($bry)) {
+            return 1;
+        }
 
         return $a->id < $b->id ? -1 : ($a->id > $b->id ? 1 : 0);
     }
@@ -143,6 +220,7 @@ class Segment
     {
         $y1 = $this->leftSE->point->y;
         $y2 = $this->rightSE->point->y;
+
         return new Bbox(
             new Vector($this->leftSE->point->x, $y1->isLessThan($y2) ? $y1 : $y2),
             new Vector($this->rightSE->point->x, $y1->isGreaterThan($y2) ? $y1 : $y2)
@@ -166,6 +244,7 @@ class Segment
     public function comparePoint(Vector $point): int
     {
         $orient = Util::orientation();
+
         return $orient($this->leftSE->point, $point, $this->rightSE->point);
     }
 
@@ -174,7 +253,9 @@ class Segment
         $tBbox = $this->bbox();
         $oBbox = $other->bbox();
         $bboxOverlap = $tBbox->getBboxOverlap($tBbox, $oBbox);
-        if ($bboxOverlap === null) return null;
+        if ($bboxOverlap === null) {
+            return null;
+        }
 
         $tlp = $this->leftSE->point;
         $trp = $this->rightSE->point;
@@ -187,33 +268,57 @@ class Segment
         $touchesThisRSE = $oBbox->pointInBbox($trp) && $other->comparePoint($trp) === 0;
 
         if ($touchesThisLSE && $touchesOtherLSE) {
-            if ($touchesThisRSE && !$touchesOtherRSE) return $trp;
-            if (!$touchesThisRSE && $touchesOtherRSE) return $orp;
+            if ($touchesThisRSE && ! $touchesOtherRSE) {
+                return $trp;
+            }
+            if (! $touchesThisRSE && $touchesOtherRSE) {
+                return $orp;
+            }
+
             return null;
         }
 
         if ($touchesThisLSE) {
-            if ($touchesOtherRSE && !($tlp->x->isEqualTo($orp->x) && $tlp->y->isEqualTo($orp->y))) return null;
+            if ($touchesOtherRSE && ! ($tlp->x->isEqualTo($orp->x) && $tlp->y->isEqualTo($orp->y))) {
+                return null;
+            }
+
             return $tlp;
         }
 
         if ($touchesOtherLSE) {
-            if ($touchesThisRSE && !($trp->x->isEqualTo($olp->x) && $trp->y->isEqualTo($olp->y))) return null;
+            if ($touchesThisRSE && ! ($trp->x->isEqualTo($olp->x) && $trp->y->isEqualTo($olp->y))) {
+                return null;
+            }
+
             return $olp;
         }
 
-        if ($touchesThisRSE && $touchesOtherRSE) return null;
+        if ($touchesThisRSE && $touchesOtherRSE) {
+            return null;
+        }
 
-        if ($touchesThisRSE) return $trp;
-        if ($touchesOtherRSE) return $orp;
+        if ($touchesThisRSE) {
+            return $trp;
+        }
+        if ($touchesOtherRSE) {
+            return $orp;
+        }
 
         $point = Vector::intersection($tlp, $this->vector(), $olp, $other->vector());
-        if ($point === null || !$bboxOverlap->pointInBbox($point)) return null;
+        if ($point === null || ! $bboxOverlap->pointInBbox($point)) {
+            return null;
+        }
 
         $snap = Util::createSnap();
+
         return $snap($point);
     }
 
+    /**
+     * @param Vector $point
+     * @return SweepEvent[]
+     */
     public function split(Vector $point): array
     {
         $newEvents = [];
@@ -244,20 +349,30 @@ class Segment
         $this->leftSE = $tmpEvt;
         $this->leftSE->isLeft = true;
         $this->rightSE->isLeft = false;
-        $this->windings = array_map(fn($w) => -$w, $this->windings);
+        $this->windings = array_map(fn ($w) => -$w, $this->windings);
     }
 
     public function consume(Segment $other): void
     {
         $consumer = $this;
         $consumee = $other;
-        while ($consumer->consumedBy) $consumer = $consumer->consumedBy;
-        while ($consumee->consumedBy) $consumee = $consumee->consumedBy;
+        while ($consumer->consumedBy) {
+            $consumer = $consumer->consumedBy;
+        }
+        while ($consumee->consumedBy) {
+            $consumee = $consumee->consumedBy;
+        }
 
         $cmp = self::compare($consumer, $consumee);
-        if ($cmp === 0) return;
-        if ($cmp > 0) [$consumer, $consumee] = [$consumee, $consumer];
-        if ($consumer->prev === $consumee) [$consumer, $consumee] = [$consumee, $consumer];
+        if ($cmp === 0) {
+            return;
+        }
+        if ($cmp > 0) {
+            [$consumer, $consumee] = [$consumee, $consumer];
+        }
+        if ($consumer->prev === $consumee) {
+            [$consumer, $consumee] = [$consumee, $consumer];
+        }
 
         foreach ($consumee->rings as $i => $ring) {
             $winding = $consumee->windings[$i];
@@ -278,34 +393,52 @@ class Segment
 
     public function prevInResult(): ?Segment
     {
-        if ($this->_prevInResult !== null) return $this->_prevInResult;
-        if (!$this->prev) return $this->_prevInResult = null;
-        if ($this->prev->isInResult()) return $this->_prevInResult = $this->prev;
+        if ($this->_prevInResult !== null) {
+            return $this->_prevInResult;
+        }
+        if (! $this->prev) {
+            return $this->_prevInResult = null;
+        }
+        if ($this->prev->isInResult()) {
+            return $this->_prevInResult = $this->prev;
+        }
+
         return $this->_prevInResult = $this->prev->prevInResult();
     }
 
+    /**
+     * @return array|array[]|mixed[]
+     */
     public function beforeState(): array
     {
-        if ($this->_beforeState !== null) return $this->_beforeState;
-        if (!$this->prev) {
+        if ($this->_beforeState !== null) {
+            return $this->_beforeState;
+        }
+        if (! $this->prev) {
             return $this->_beforeState = ['rings' => [], 'windings' => [], 'multiPolys' => []];
         }
         $seg = $this->prev;
         while ($seg->consumedBy !== null && $seg->prev !== null) {
             $seg = $seg->prev;
         }
+
         return $this->_beforeState = $seg->afterState();
     }
 
+    /**
+     * @return mixed[]
+     */
     public function afterState(): array
     {
-        if ($this->_afterState !== null) return $this->_afterState;
+        if ($this->_afterState !== null) {
+            return $this->_afterState;
+        }
 
         $beforeState = $this->beforeState();
         $this->_afterState = [
             'rings' => array_slice($beforeState['rings'], 0),
             'windings' => array_slice($beforeState['windings'], 0),
-            'multiPolys' => []
+            'multiPolys' => [],
         ];
 
         $ringsAfter = &$this->_afterState['rings'];
@@ -326,21 +459,31 @@ class Segment
         $polysAfter = [];
         $polysExclude = [];
         foreach ($ringsAfter as $i => $ring) {
-            if ($windingsAfter[$i] === 0) continue;
+            if ($windingsAfter[$i] === 0) {
+                continue;
+            }
             $poly = $ring->poly;
-            if (in_array($poly, $polysExclude, true)) continue;
+            if (in_array($poly, $polysExclude, true)) {
+                continue;
+            }
             if ($ring->isExterior) {
                 $polysAfter[] = $poly;
             } else {
-                if (!in_array($poly, $polysExclude, true)) $polysExclude[] = $poly;
+                if (! in_array($poly, $polysExclude, true)) {
+                    $polysExclude[] = $poly;
+                }
                 $index = array_search($poly, $polysAfter, true);
-                if ($index !== false) array_splice($polysAfter, $index, 1);
+                if ($index !== false) {
+                    array_splice($polysAfter, $index, 1);
+                }
             }
         }
 
         foreach ($polysAfter as $poly) {
             $mp = $poly->multiPoly;
-            if (!in_array($mp, $mpsAfter, true)) $mpsAfter[] = $mp;
+            if (! in_array($mp, $mpsAfter, true)) {
+                $mpsAfter[] = $mp;
+            }
         }
 
         return $this->_afterState;
@@ -348,8 +491,12 @@ class Segment
 
     public function isInResult(): bool
     {
-        if ($this->consumedBy) return false;
-        if ($this->_isInResult !== null) return $this->_isInResult;
+        if ($this->consumedBy) {
+            return false;
+        }
+        if ($this->_isInResult !== null) {
+            return $this->_isInResult;
+        }
 
         $mpsBefore = $this->beforeState()['multiPolys'];
         $mpsAfter = $this->afterState()['multiPolys'];
@@ -367,7 +514,7 @@ class Segment
                 $this->_isInResult = abs(count($mpsBefore) - count($mpsAfter)) % 2 === 1;
                 break;
             case 'difference':
-                $isJustSubject = fn($mps) => count($mps) === 1 && $mps[0]->isSubject;
+                $isJustSubject = fn ($mps) => count($mps) === 1 && $mps[0]->isSubject;
                 $this->_isInResult = $isJustSubject($mpsBefore) !== $isJustSubject($mpsAfter);
                 break;
             default:
