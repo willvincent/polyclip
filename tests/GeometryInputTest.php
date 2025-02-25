@@ -2,17 +2,12 @@
 
 declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
-use Polyclip\Lib\Geometry\MultiPolyOut;
-use Polyclip\Lib\Geometry\PolyOut;
-use Polyclip\Lib\Geometry\RingIn;
-use Polyclip\Lib\Geometry\PolyIn;
-use Polyclip\Lib\Geometry\MultiPolyIn;
-use Polyclip\Lib\Geometry\RingOut;
-use Polyclip\Lib\Segment;
-use Polyclip\Lib\Util;
-use Polyclip\Lib\Vector;
 use Brick\Math\BigDecimal;
+use PHPUnit\Framework\TestCase;
+use Polyclip\Lib\Geometry\MultiPolyIn;
+use Polyclip\Lib\Geometry\PolyIn;
+use Polyclip\Lib\Geometry\RingIn;
+use Polyclip\Lib\Util;
 
 class GeometryInputTest extends TestCase
 {
@@ -27,12 +22,12 @@ class GeometryInputTest extends TestCase
         Util::reset();
     }
 
-    public function testRingInCreateExteriorRing(): void
+    public function test_ring_in_create_exterior_ring(): void
     {
         $ringGeom = [
             [BigDecimal::of(0), BigDecimal::of(0)],
             [BigDecimal::of(1), BigDecimal::of(0)],
-            [BigDecimal::of(1), BigDecimal::of(1)]
+            [BigDecimal::of(1), BigDecimal::of(1)],
         ];
         $poly = $this->createMock(PolyIn::class);
         $ring = new RingIn($ringGeom, $poly, true);
@@ -49,12 +44,12 @@ class GeometryInputTest extends TestCase
         // Add similar assertions for other segments
     }
 
-    public function testRingInCreateInteriorRing(): void
+    public function test_ring_in_create_interior_ring(): void
     {
         $ringGeom = [
             [BigDecimal::of(0), BigDecimal::of(0)],
             [BigDecimal::of(1), BigDecimal::of(1)],
-            [BigDecimal::of(1), BigDecimal::of(0)]
+            [BigDecimal::of(1), BigDecimal::of(0)],
         ];
         $poly = $this->createMock(PolyIn::class);
         $ring = new RingIn($ringGeom, $poly, false);
@@ -62,7 +57,7 @@ class GeometryInputTest extends TestCase
         $this->assertFalse($ring->isExterior);
     }
 
-    public function testPolyInCreation(): void
+    public function test_poly_in_creation(): void
     {
         $multiPoly = $this->createMock(MultiPolyIn::class);
         $polyGeom = [
@@ -70,19 +65,19 @@ class GeometryInputTest extends TestCase
                 [BigDecimal::of(0), BigDecimal::of(0)],
                 [BigDecimal::of(10), BigDecimal::of(0)],
                 [BigDecimal::of(10), BigDecimal::of(10)],
-                [BigDecimal::of(0), BigDecimal::of(10)]
+                [BigDecimal::of(0), BigDecimal::of(10)],
             ],
             [
                 [BigDecimal::of(0), BigDecimal::of(0)],
                 [BigDecimal::of(1), BigDecimal::of(1)],
-                [BigDecimal::of(1), BigDecimal::of(0)]
+                [BigDecimal::of(1), BigDecimal::of(0)],
             ],
             [
                 [BigDecimal::of(2), BigDecimal::of(2)],
                 [BigDecimal::of(2), BigDecimal::of(3)],
                 [BigDecimal::of(3), BigDecimal::of(3)],
-                [BigDecimal::of(3), BigDecimal::of(2)]
-            ]
+                [BigDecimal::of(3), BigDecimal::of(2)],
+            ],
         ];
         $poly = new PolyIn($polyGeom, $multiPoly);
 
@@ -94,7 +89,7 @@ class GeometryInputTest extends TestCase
         $this->assertCount(22, $poly->getSweepEvents());
     }
 
-    public function testMultiPolyInCreationWithMultiPoly(): void
+    public function test_multi_poly_in_creation_with_multi_poly(): void
     {
 
         $multiPolyGeom = [
@@ -102,21 +97,21 @@ class GeometryInputTest extends TestCase
                 [
                     [BigDecimal::of(0), BigDecimal::of(0)],
                     [BigDecimal::of(1), BigDecimal::of(1)],
-                    [BigDecimal::of(0), BigDecimal::of(1)]
-                ]
+                    [BigDecimal::of(0), BigDecimal::of(1)],
+                ],
             ],
             [
                 [
                     [BigDecimal::of(0), BigDecimal::of(0)],
                     [BigDecimal::of(4), BigDecimal::of(0)],
-                    [BigDecimal::of(4), BigDecimal::of(9)]
+                    [BigDecimal::of(4), BigDecimal::of(9)],
                 ],
                 [
                     [BigDecimal::of(2), BigDecimal::of(2)],
                     [BigDecimal::of(3), BigDecimal::of(3)],
-                    [BigDecimal::of(3), BigDecimal::of(2)]
-                ]
-            ]
+                    [BigDecimal::of(3), BigDecimal::of(2)],
+                ],
+            ],
         ];
 
         $multiPoly = new MultiPolyIn($multiPolyGeom, true);
@@ -124,7 +119,7 @@ class GeometryInputTest extends TestCase
         $this->assertCount(18, $multiPoly->getSweepEvents());
     }
 
-    public function testMultiPolyInCreationWithPoly(): void
+    public function test_multi_poly_in_creation_with_poly(): void
     {
         $polyGeom = [
             [
@@ -132,9 +127,9 @@ class GeometryInputTest extends TestCase
                     [BigDecimal::of(0), BigDecimal::of(0)],
                     [BigDecimal::of(1), BigDecimal::of(1)],
                     [BigDecimal::of(0), BigDecimal::of(1)],
-                    [BigDecimal::of(0), BigDecimal::of(0)]
-                ]
-            ]
+                    [BigDecimal::of(0), BigDecimal::of(0)],
+                ],
+            ],
         ];
         $multiPoly = new MultiPolyIn($polyGeom, true);
 
@@ -142,14 +137,14 @@ class GeometryInputTest extends TestCase
         $this->assertCount(6, $multiPoly->getSweepEvents());
     }
 
-    public function testMultiPolyInCreationWithInvalidInput(): void
+    public function test_multi_poly_in_creation_with_invalid_input(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Input geometry is not a valid Polygon or MultiPolygon');
         new MultiPolyIn([], true);
     }
 
-    public function testRingInWithEmptyGeometry(): void
+    public function test_ring_in_with_empty_geometry(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Input geometry is not a valid Polygon or MultiPolygon');
@@ -157,28 +152,28 @@ class GeometryInputTest extends TestCase
         new RingIn([], $poly, true);
     }
 
-    public function testRingInWithLessThanThreePoints(): void
+    public function test_ring_in_with_less_than_three_points(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Input geometry is not a valid Polygon or MultiPolygon');
         $poly = $this->createMock(PolyIn::class);
         $geom = [
             [BigDecimal::of(0), BigDecimal::of(0)],
-            [BigDecimal::of(1), BigDecimal::of(1)]
+            [BigDecimal::of(1), BigDecimal::of(1)],
         ];
         $ring = new RingIn($geom, $poly, true);
         print_r($ring);
     }
 
-//
+    //
 
-    public function testRingInWithNonClosedRing(): void
+    public function test_ring_in_with_non_closed_ring(): void
     {
         $poly = $this->createMock(PolyIn::class);
         $geom = [
             [BigDecimal::of(0), BigDecimal::of(0)],
             [BigDecimal::of(1), BigDecimal::of(1)],
-            [BigDecimal::of(2), BigDecimal::of(0)]
+            [BigDecimal::of(2), BigDecimal::of(0)],
         ];
         $ring = new RingIn($geom, $poly, true);
 
@@ -190,7 +185,7 @@ class GeometryInputTest extends TestCase
         $this->assertEquals(BigDecimal::of(0), $lastSegment->leftSE->point->y);
     }
 
-    public function testRingInWithInvalidCoordinateTypes(): void
+    public function test_ring_in_with_invalid_coordinate_types(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Input geometry is not a valid Polygon or MultiPolygon');
@@ -198,18 +193,18 @@ class GeometryInputTest extends TestCase
         $geom = [
             ['not_a_number', BigDecimal::of(0)],
             [BigDecimal::of(1), BigDecimal::of(1)],
-            [BigDecimal::of(0), BigDecimal::of(1)]
+            [BigDecimal::of(0), BigDecimal::of(1)],
         ];
         new RingIn($geom, $poly, true);
     }
 
-    public function testRingInWithExtraCoordinates(): void
+    public function test_ring_in_with_extra_coordinates(): void
     {
         $poly = $this->createMock(PolyIn::class);
         $geom = [
             [BigDecimal::of(0), BigDecimal::of(0), BigDecimal::of(5)],
             [BigDecimal::of(1), BigDecimal::of(1), BigDecimal::of(6)],
-            [BigDecimal::of(0), BigDecimal::of(1), BigDecimal::of(7)]
+            [BigDecimal::of(0), BigDecimal::of(1), BigDecimal::of(7)],
         ];
         $ring = new RingIn($geom, $poly, true);
 

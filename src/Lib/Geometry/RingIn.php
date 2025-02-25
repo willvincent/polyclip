@@ -67,7 +67,7 @@ class RingIn
         }
 
         // Close the ring if the last point is not the same as the first
-        if (!$firstPoint->x->isEqualTo($prevPoint->x) || !$firstPoint->y->isEqualTo($prevPoint->y)) {
+        if (! $firstPoint->x->isEqualTo($prevPoint->x) || ! $firstPoint->y->isEqualTo($prevPoint->y)) {
             $this->segments[] = Segment::fromRing($prevPoint, $firstPoint, $this);
         }
     }

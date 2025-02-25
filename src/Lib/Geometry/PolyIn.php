@@ -2,7 +2,6 @@
 
 namespace Polyclip\Lib\Geometry;
 
-use Brick\Math\BigDecimal;
 use Polyclip\Lib\Bbox;
 use Polyclip\Lib\SweepEvent;
 use Polyclip\Lib\Vector;

@@ -11,7 +11,7 @@ class MultiPolyOut
     public array $polys;
 
     /**
-     * @param mixed[] $rings
+     * @param  mixed[]  $rings
      */
     public function __construct(array $rings)
     {
@@ -36,7 +36,7 @@ class MultiPolyOut
     }
 
     /**
-     * @param mixed[] $rings
+     * @param  mixed[]  $rings
      * @return mixed[]
      */
     private function _composePolys(array $rings): array

@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
+use Brick\Math\BigDecimal;
 use PHPUnit\Framework\TestCase;
 use Polyclip\Lib\Segment;
 use Polyclip\Lib\SweepEvent;
 use Polyclip\Lib\SweepLine;
 use Polyclip\Lib\Vector;
-use Brick\Math\BigDecimal;
 use SplayTree\SplayTree;
 
 class SweepLineTest extends TestCase
 {
-    public function testSweepEventCompareFavorEarlierX(): void
+    public function test_sweep_event_compare_favor_earlier_x(): void
     {
         $s1 = new SweepEvent(new Vector(BigDecimal::of(-5), BigDecimal::of(4)), true);
         $s2 = new SweepEvent(new Vector(BigDecimal::of(5), BigDecimal::of(1)), true);
@@ -20,7 +20,7 @@ class SweepLineTest extends TestCase
         $this->assertGreaterThan(0, SweepEvent::compare($s2, $s1));
     }
 
-    public function testSweepEventCompareFavorEarlierY(): void
+    public function test_sweep_event_compare_favor_earlier_y(): void
     {
         $s1 = new SweepEvent(new Vector(BigDecimal::of(5), BigDecimal::of(-4)), true);
         $s2 = new SweepEvent(new Vector(BigDecimal::of(5), BigDecimal::of(4)), true);
@@ -28,7 +28,7 @@ class SweepLineTest extends TestCase
         $this->assertGreaterThan(0, SweepEvent::compare($s2, $s1));
     }
 
-    public function testSweepLineProcess(): void
+    public function test_sweep_line_process(): void
     {
         $queue = new SplayTree([SweepEvent::class, 'compare']);
         $sweepLine = new SweepLine($queue);
@@ -51,7 +51,7 @@ class SweepLineTest extends TestCase
         $this->assertCount(1, $sweepLine->segments);
     }
 
-    public function testSweepLineSegmentsIntersectingAtPoint(): void
+    public function test_sweep_line_segments_intersecting_at_point(): void
     {
         $queue = new SplayTree([SweepEvent::class, 'compare']);
         $sweepLine = new SweepLine($queue);
@@ -86,7 +86,7 @@ class SweepLineTest extends TestCase
         $this->assertCount(4, $sweepLine->segments); // After all events, expect 4 segments
     }
 
-    public function testSweepLineSegmentsOverlapping(): void
+    public function test_sweep_line_segments_overlapping(): void
     {
         $queue = new SplayTree([SweepEvent::class, 'compare']);
         $sweepLine = new SweepLine($queue);
@@ -121,7 +121,7 @@ class SweepLineTest extends TestCase
         $this->assertCount(2, $sweepLine->segments); // Current behavior: 2 segments
     }
 
-    public function testSweepLineVerticalAndHorizontal(): void
+    public function test_sweep_line_vertical_and_horizontal(): void
     {
         $queue = new SplayTree([SweepEvent::class, 'compare']);
         $sweepLine = new SweepLine($queue);

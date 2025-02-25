@@ -20,7 +20,7 @@ class RingOut
     private ?RingOut $_enclosingRing = null;
 
     /**
-     * @param SweepEvent[] $events
+     * @param  SweepEvent[]  $events
      */
     public function __construct(array $events)
     {
@@ -31,7 +31,7 @@ class RingOut
     }
 
     /**
-     * @param Segment[] $allSegments
+     * @param  Segment[]  $allSegments
      * @return mixed[]
      */
     public static function factory(array $allSegments): array

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use Brick\Math\BigDecimal;
 use PHPUnit\Framework\TestCase;
 use Polyclip\Lib\Util;
-use Brick\Math\BigDecimal;
 
 class PrecisionTest extends TestCase
 {
@@ -19,7 +19,7 @@ class PrecisionTest extends TestCase
         Util::reset();
     }
 
-    public function testComparatorExactlyEqual(): void
+    public function test_comparator_exactly_equal(): void
     {
         $comparator = Util::comparator();
         $a = BigDecimal::of(1);
@@ -27,7 +27,7 @@ class PrecisionTest extends TestCase
         $this->assertEquals(0, $comparator($a, $b));
     }
 
-    public function testComparatorFlpEqual(): void
+    public function test_comparator_flp_equal(): void
     {
         $comparator = Util::comparator();
         $epsilon = BigDecimal::of(1e-10);
@@ -36,7 +36,7 @@ class PrecisionTest extends TestCase
         $this->assertEquals(0, $comparator($a, $b));
     }
 
-    public function testComparatorBarelyLessThan(): void
+    public function test_comparator_barely_less_than(): void
     {
         $comparator = Util::comparator();
         $epsilon = BigDecimal::of(1e-10);
@@ -45,7 +45,7 @@ class PrecisionTest extends TestCase
         $this->assertEquals(-1, $comparator($a, $b));
     }
 
-    public function testComparatorLessThan(): void
+    public function test_comparator_less_than(): void
     {
         $comparator = Util::comparator();
         $a = BigDecimal::of(1);
@@ -53,7 +53,7 @@ class PrecisionTest extends TestCase
         $this->assertEquals(-1, $comparator($a, $b));
     }
 
-    public function testComparatorBarelyMoreThan(): void
+    public function test_comparator_barely_more_than(): void
     {
         $comparator = Util::comparator();
         $epsilon = BigDecimal::of(1e-10);
@@ -62,7 +62,7 @@ class PrecisionTest extends TestCase
         $this->assertEquals(1, $comparator($a, $b));
     }
 
-    public function testComparatorMoreThan(): void
+    public function test_comparator_more_than(): void
     {
         $comparator = Util::comparator();
         $a = BigDecimal::of(2);
@@ -70,7 +70,7 @@ class PrecisionTest extends TestCase
         $this->assertEquals(1, $comparator($a, $b));
     }
 
-    public function testComparatorBothFlpEqualToZero(): void
+    public function test_comparator_both_flp_equal_to_zero(): void
     {
         $comparator = Util::comparator();
         $epsilon = BigDecimal::of(1e-10);
@@ -79,7 +79,7 @@ class PrecisionTest extends TestCase
         $this->assertEquals(0, $comparator($a, $b));
     }
 
-    public function testComparatorReallyCloseToZero(): void
+    public function test_comparator_really_close_to_zero(): void
     {
         $comparator = Util::comparator();
         $epsilon = BigDecimal::of(1e-10);

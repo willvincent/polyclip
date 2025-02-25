@@ -9,9 +9,9 @@ use SplayTree\SplayTree;
 
 class Util
 {
-    protected static SplayTree|null $xTree = null;
+    protected static ?SplayTree $xTree = null;
 
-    protected static SplayTree|null $yTree = null;
+    protected static ?SplayTree $yTree = null;
 
     protected static mixed $pointCache = [];
 

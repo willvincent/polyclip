@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
+use Brick\Math\BigDecimal;
 use PHPUnit\Framework\TestCase;
 use Polyclip\Lib\Bbox;
 use Polyclip\Lib\Vector;
-use Brick\Math\BigDecimal;
 
 class BboxTest extends TestCase
 {
-    public function testPointInBboxOutside(): void
+    public function test_point_in_bbox_outside(): void
     {
         $bbox = new Bbox(
             new Vector(BigDecimal::of(1), BigDecimal::of(2)),
@@ -21,7 +21,7 @@ class BboxTest extends TestCase
         $this->assertFalse($bbox->pointInBbox(new Vector(BigDecimal::of(9), BigDecimal::of(3))));
     }
 
-    public function testPointInBboxInside(): void
+    public function test_point_in_bbox_inside(): void
     {
         $bbox = new Bbox(
             new Vector(BigDecimal::of(1), BigDecimal::of(2)),
@@ -34,7 +34,7 @@ class BboxTest extends TestCase
         $this->assertTrue($bbox->pointInBbox(new Vector(BigDecimal::of(3), BigDecimal::of(4))));
     }
 
-    public function testPointInBboxBarelyInsideAndOutside(): void
+    public function test_point_in_bbox_barely_inside_and_outside(): void
     {
         $epsilon = BigDecimal::of(1e-10);
         $bbox = new Bbox(
@@ -47,7 +47,7 @@ class BboxTest extends TestCase
         $this->assertFalse($bbox->pointInBbox(new Vector(BigDecimal::of(1), BigDecimal::of(0.8)->minus($epsilon))));
     }
 
-    public function testGetBboxOverlapDisjoint(): void
+    public function test_get_bbox_overlap_disjoint(): void
     {
         $bbox1 = new Bbox(
             new Vector(BigDecimal::of(4), BigDecimal::of(4)),
@@ -76,7 +76,7 @@ class BboxTest extends TestCase
         $this->assertNull($bbox1->getBboxOverlap($bbox1, $bboxRight));
     }
 
-    public function testGetBboxOverlapTouchingOnePoint(): void
+    public function test_get_bbox_overlap_touching_one_point(): void
     {
         $bbox1 = new Bbox(
             new Vector(BigDecimal::of(4), BigDecimal::of(4)),
@@ -96,7 +96,7 @@ class BboxTest extends TestCase
 
     }
 
-    public function testGetBboxOverlapOverlappingTwoPoints(): void
+    public function test_get_bbox_overlap_overlapping_two_points(): void
     {
         $bbox1 = new Bbox(
             new Vector(BigDecimal::of(4), BigDecimal::of(4)),
@@ -126,7 +126,7 @@ class BboxTest extends TestCase
 
     }
 
-    public function testGetBboxOverlapOneCompletelyInsideAnother(): void
+    public function test_get_bbox_overlap_one_completely_inside_another(): void
     {
         $outer = new Bbox(
             new Vector(BigDecimal::of(0), BigDecimal::of(0)),
@@ -145,7 +145,7 @@ class BboxTest extends TestCase
         $this->assertEquals(BigDecimal::of(4), $overlap->upperRight->y);
     }
 
-    public function testGetBboxOverlapPartialOverlap(): void
+    public function test_get_bbox_overlap_partial_overlap(): void
     {
         $bbox1 = new Bbox(
             new Vector(BigDecimal::of(0), BigDecimal::of(0)),
@@ -164,7 +164,7 @@ class BboxTest extends TestCase
         $this->assertEquals(BigDecimal::of(5), $overlap->upperRight->y);
     }
 
-    public function testGetBboxOverlapTouchingAlongEdge(): void
+    public function test_get_bbox_overlap_touching_along_edge(): void
     {
         $bbox1 = new Bbox(
             new Vector(BigDecimal::of(0), BigDecimal::of(0)),
@@ -183,7 +183,7 @@ class BboxTest extends TestCase
         $this->assertEquals(BigDecimal::of(5), $overlap->upperRight->y);
     }
 
-    public function testGetBboxOverlapTouchingAtAllCorners(): void
+    public function test_get_bbox_overlap_touching_at_all_corners(): void
     {
         $bbox1 = new Bbox(
             new Vector(BigDecimal::of(0), BigDecimal::of(0)),

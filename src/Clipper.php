@@ -99,7 +99,7 @@ final class Clipper
     /**
      * Recursively converts all numbers in the coordinate array to BigDecimal.
      *
-     * @param mixed[] $coordinates
+     * @param  mixed[]  $coordinates
      * @return mixed[]
      */
     private static function convertToBigDecimal(array $coordinates): array
@@ -116,7 +116,7 @@ final class Clipper
     /**
      * Recursively converts all BigDecimal instances in the coordinate array to floats.
      *
-     * @param mixed[] $coordinates
+     * @param  mixed[]  $coordinates
      * @return mixed[]
      */
     private static function convertToFloat(array $coordinates): array
@@ -134,7 +134,7 @@ final class Clipper
     }
 
     /**
-     * @param string|GeoJson|mixed[] $geom
+     * @param  string|GeoJson|mixed[]  $geom
      * @return mixed[]
      */
     private static function geoJsonToArray($geom): array
@@ -177,8 +177,7 @@ final class Clipper
     }
 
     /**
-     * @param mixed[] $array
-     * @return GeoJson
+     * @param  mixed[]  $array
      */
     private static function arrayToGeoJson(array $array): GeoJson
     {

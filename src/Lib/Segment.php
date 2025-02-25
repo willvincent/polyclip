@@ -48,10 +48,8 @@ class Segment
     private ?bool $_isInResult = null;
 
     /**
-     * @param SweepEvent $leftSE
-     * @param SweepEvent $rightSE
-     * @param mixed[] $rings
-     * @param mixed[] $windings
+     * @param  mixed[]  $rings
+     * @param  mixed[]  $windings
      */
     public function __construct(SweepEvent $leftSE, SweepEvent $rightSE, array $rings, array $windings)
     {
@@ -316,7 +314,6 @@ class Segment
     }
 
     /**
-     * @param Vector $point
      * @return SweepEvent[]
      */
     public function split(Vector $point): array

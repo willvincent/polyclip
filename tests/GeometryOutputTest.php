@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
-use Polyclip\Lib\Geometry\RingOut;
-use Polyclip\Lib\Geometry\PolyOut;
-use Polyclip\Lib\Geometry\MultiPolyOut;
-use Polyclip\Lib\Segment;
-use Polyclip\Lib\SweepEvent;
-use Polyclip\Lib\Vector;
-use Polyclip\Lib\Util;
 use Brick\Math\BigDecimal;
+use PHPUnit\Framework\TestCase;
+use Polyclip\Lib\Geometry\MultiPolyOut;
+use Polyclip\Lib\Geometry\PolyOut;
+use Polyclip\Lib\Geometry\RingOut;
+use Polyclip\Lib\Segment;
+use Polyclip\Lib\Util;
+use Polyclip\Lib\Vector;
 
 class GeometryOutputTest extends TestCase
 {
@@ -25,7 +24,7 @@ class GeometryOutputTest extends TestCase
         Util::reset();
     }
 
-    public function testRingOutFactorySimpleTriangle(): void
+    public function test_ring_out_factory_simple_triangle(): void
     {
         $p1 = new Vector(BigDecimal::of(0), BigDecimal::of(0));
         $p2 = new Vector(BigDecimal::of(1), BigDecimal::of(1));
@@ -47,13 +46,13 @@ class GeometryOutputTest extends TestCase
         $this->assertCount(1, $rings);
         $this->assertEquals(
             [
-                [[0, 0], [0, 1], [1, 1], [0, 0]]
+                [[0, 0], [0, 1], [1, 1], [0, 0]],
             ],
             [$rings[0]->getGeom()]
         );
     }
 
-    public function testRingOutExteriorRing(): void
+    public function test_ring_out_exterior_ring(): void
     {
         $p1 = new Vector(BigDecimal::of(0), BigDecimal::of(0));
         $p2 = new Vector(BigDecimal::of(1), BigDecimal::of(1));
@@ -80,7 +79,7 @@ class GeometryOutputTest extends TestCase
         );
     }
 
-    public function testPolyOutBasic(): void
+    public function test_poly_out_basic(): void
     {
         $ring1 = $this->createMock(RingOut::class);
         $ring1->method('getGeom')->willReturn([[0, 0], [1, 0], [1, 1], [0, 0]]);
@@ -99,19 +98,19 @@ class GeometryOutputTest extends TestCase
         $this->assertEquals([
             [[0, 0], [1, 0], [1, 1], [0, 0]],
             [[0.2, 0.2], [0.8, 0.2], [0.8, 0.8], [0.2, 0.2]],
-            [[0.3, 0.3], [0.7, 0.3], [0.7, 0.7], [0.3, 0.3]]
+            [[0.3, 0.3], [0.7, 0.3], [0.7, 0.7], [0.3, 0.3]],
         ], $poly->getGeom());
     }
 
-    public function testMultiPolyOutBasic(): void
+    public function test_multi_poly_out_basic(): void
     {
         $poly1 = $this->createMock(PolyOut::class);
         $poly1->method('getGeom')->willReturn([
-            [[0, 0], [1, 0], [1, 1], [0, 0]]
+            [[0, 0], [1, 0], [1, 1], [0, 0]],
         ]);
         $poly2 = $this->createMock(PolyOut::class);
         $poly2->method('getGeom')->willReturn([
-            [[2, 2], [3, 2], [3, 3], [2, 2]]
+            [[2, 2], [3, 2], [3, 3], [2, 2]],
         ]);
 
         $multiPoly = new MultiPolyOut([]);
@@ -119,11 +118,11 @@ class GeometryOutputTest extends TestCase
 
         $this->assertEquals([
             [[[0, 0], [1, 0], [1, 1], [0, 0]]],
-            [[[2, 2], [3, 2], [3, 3], [2, 2]]]
+            [[[2, 2], [3, 2], [3, 3], [2, 2]]],
         ], $multiPoly->getGeom());
     }
 
-    public function testRingOutFactoryBowTie(): void
+    public function test_ring_out_factory_bow_tie(): void
     {
         $p1 = new Vector(BigDecimal::of(0), BigDecimal::of(0));
         $p2 = new Vector(BigDecimal::of(2), BigDecimal::of(2));
@@ -153,7 +152,7 @@ class GeometryOutputTest extends TestCase
         );
     }
 
-    public function testPolyOutWithHole(): void
+    public function test_poly_out_with_hole(): void
     {
         $outerRing = $this->createMock(RingOut::class);
         $outerRing->method('getGeom')->willReturn([[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]]);
@@ -170,13 +169,13 @@ class GeometryOutputTest extends TestCase
         $this->assertEquals(
             [
                 [[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]],
-                [[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]
+                [[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]],
             ],
             $poly->getGeom()
         );
     }
 
-    public function testMultiPolyOutWithNestedRings(): void
+    public function test_multi_poly_out_with_nested_rings(): void
     {
         $outer = $this->createMock(RingOut::class);
         $outer->method('getGeom')->willReturn([[0, 0], [5, 0], [5, 5], [0, 5], [0, 0]]);
@@ -197,11 +196,11 @@ class GeometryOutputTest extends TestCase
         $expected = [
             [ // Polygon 1: outer with middle as hole
                 [[0, 0], [5, 0], [5, 5], [0, 5], [0, 0]],
-                [[1, 1], [4, 1], [4, 4], [1, 4], [1, 1]]
+                [[1, 1], [4, 1], [4, 4], [1, 4], [1, 1]],
             ],
             [ // Polygon 2: inner
-                [[2, 2], [3, 2], [3, 3], [2, 3], [2, 2]]
-            ]
+                [[2, 2], [3, 2], [3, 3], [2, 3], [2, 2]],
+            ],
         ];
 
         $this->assertEquals($expected, $multiPoly->getGeom());

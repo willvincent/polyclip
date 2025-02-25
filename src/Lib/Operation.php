@@ -16,10 +16,10 @@ class Operation
     public static int $numMultiPolys;
 
     /**
-     * @param string $type
-     * @param mixed[] $geom
-     * @param mixed[] ...$moreGeoms
+     * @param  mixed[]  $geom
+     * @param  mixed[]  ...$moreGeoms
      * @return mixed[]
+     *
      * @throws \Brick\Math\Exception\DivisionByZeroException
      * @throws \Brick\Math\Exception\NumberFormatException
      */

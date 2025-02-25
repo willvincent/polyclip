@@ -9,9 +9,7 @@ use Brick\Math\BigDecimal;
 class Vector
 {
     /**
-     * @param BigDecimal $x
-     * @param BigDecimal $y
-     * @param SweepEvent[]|null $events
+     * @param  SweepEvent[]|null  $events
      */
     public function __construct(
         public BigDecimal $x,

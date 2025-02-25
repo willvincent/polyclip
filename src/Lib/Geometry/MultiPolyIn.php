@@ -20,8 +20,8 @@ class MultiPolyIn
     public Bbox $bbox;
 
     /**
-     * @param mixed[] $geom
-     * @param bool $isSubject
+     * @param  mixed[]  $geom
+     *
      * @throws \Brick\Math\Exception\DivisionByZeroException
      * @throws \Brick\Math\Exception\NumberFormatException
      */

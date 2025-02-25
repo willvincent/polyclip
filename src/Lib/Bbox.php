@@ -45,6 +45,6 @@ class Bbox
 
     public function __toString(): string
     {
-        return '[' . $this->lowerLeft->x . ',' . $this->lowerLeft->y . '],[' . $this->upperRight->x . ',' . $this->upperRight->y . ']';
+        return '['.$this->lowerLeft->x.','.$this->lowerLeft->y.'],['.$this->upperRight->x.','.$this->upperRight->y.']';
     }
 }

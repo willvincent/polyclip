@@ -24,7 +24,6 @@ class SweepLine
     }
 
     /**
-     * @param SweepEvent $event
      * @return SweepEvent[]
      */
     public function process(SweepEvent $event): array
@@ -138,8 +137,6 @@ class SweepLine
     }
 
     /**
-     * @param Segment $segment
-     * @param Vector $point
      * @return SweepEvent[]
      */
     private function _splitSafely(Segment $segment, Vector $point): array
