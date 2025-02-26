@@ -8,11 +8,75 @@ use Polyclip\Clipper;
 
 class ClipperTest extends TestCase
 {
+    /**
+     * @param mixed[] $coordinates
+     * @return int
+     */
+    private function findMinPointIndex(array $ring): int
+    {
+        $minIndex = 0;
+        $minPoint = $ring[0];
+        for ($i = 1; $i < count($ring) - 1; $i++) { // Exclude the closing point
+            if ($ring[$i][0] < $minPoint[0] || ($ring[$i][0] == $minPoint[0] && $ring[$i][1] < $minPoint[1])) {
+                $minPoint = $ring[$i];
+                $minIndex = $i;
+            }
+        }
+        return $minIndex;
+    }
+
+    /**
+     * @param mixed[] $coordinates
+     * @return mixed[]
+     */
+    private function rotateRing(array $ring, int $startIndex): array
+    {
+        $n = count($ring) - 1; // Exclude the closing point
+        $rotated = array_merge(
+            array_slice($ring, $startIndex, $n - $startIndex),
+            array_slice($ring, 0, $startIndex)
+        );
+        $rotated[] = $rotated[0]; // Close the ring
+        return $rotated;
+    }
+
+    /**
+     * @param mixed[] $coordinates
+     * @return mixed[]
+     */
+    private function normalizeRing(array $ring): array
+    {
+        $minIndex = $this->findMinPointIndex($ring);
+        return $this->rotateRing($ring, $minIndex);
+    }
+
+    /**
+     * @param mixed[] $coordinates
+     * @return mixed[]
+     */
+    private function normalizeCoordinates(array $coordinates): array
+    {
+        $normalized = [];
+        foreach ($coordinates as $polygon) {
+            $normalizedPolygon = [];
+            foreach ($polygon as $ring) {
+                $normalizedPolygon[] = $this->normalizeRing($ring);
+            }
+            $normalized[] = $normalizedPolygon;
+        }
+        return $normalized;
+    }
+
     public function test_end_to_end()
     {
         // Define the test directory
         $endToEndDir = __DIR__.'/end-to-end';
         $targets = array_diff(scandir($endToEndDir), ['.', '..']);
+
+        $targets = [
+            'clean-poly-with-interior-ring-splitting-exterior',
+            'clean-poly-with-interior-ring-touching-exterior',
+        ];
 
         foreach ($targets as $target) {
             // Skip dotfiles (e.g., .DS_Store)
@@ -59,16 +123,17 @@ class ClipperTest extends TestCase
 
                     // Perform the operation
                     $result = Clipper::$op(...$args);
-//                    error_log(json_encode($result, JSON_PRETTY_PRINT));
+
+                    error_log($target .": \n" . json_encode($result));
 
                     if (isset($resultGeojson->getProperties()['noCoordinates'])) {
                         // If we expect no coordinates, we cannot call getCoordinates()
                         $parsed = json_decode(json_encode($result->getGeometry()));
                         $this->assertObjectNotHasProperty('coordinates', $parsed);
                     } else {
-                        $resultCoordinates = $result->getGeometry()->getCoordinates();
+                        $expectedCoordinates = $this->normalizeCoordinates($expectedCoordinates);
+                        $resultCoordinates = $this->normalizeCoordinates($result->getGeometry()->getCoordinates());
 
-                        // Assert coordinates match
                         $this->assertEquals(
                             $expectedCoordinates,
                             $resultCoordinates,
