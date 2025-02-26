@@ -20,7 +20,7 @@ class RingOut
     private ?RingOut $_enclosingRing = null;
 
     /**
-     * @param  SweepEvent[]  $events
+     * @param SweepEvent[] $events
      */
     public function __construct(array $events)
     {
@@ -45,18 +45,14 @@ class RingOut
                 continue;
             }
 
-            // Log the starting segment
-            error_log("Starting new ring with segment {$segment->id}: [{$segment->leftSE->point->x}, {$segment->leftSE->point->y}] -> [{$segment->rightSE->point->x}, {$segment->rightSE->point->y}]");
-
             $events = [];
             $startingPoint = $segment->leftSE->point;
             $intersectionLEs = [];
             $event = $segment->leftSE;
             $nextEvent = $segment->rightSE;
 
-            // Log initial ring IDs for context
+            // Get initial ring IDs from the starting segment
             $initialRingIds = array_map(fn($ring) => $ring->id, array_filter($segment->rings, fn($ring) => $ring !== null));
-            error_log("Initial ring IDs: " . implode(', ', $initialRingIds));
 
             while (true) {
                 $events[] = $event;
@@ -64,55 +60,34 @@ class RingOut
                 $event = $nextEvent;
                 $processedSegments[$event->segment->id] = true;
 
-                // Log the current event being processed
-                error_log("Processing event at [{$event->point->x}, {$event->point->y}]");
-
                 // Check if the ring is complete
                 if ($event->point->x->isEqualTo($startingPoint->x) && $event->point->y->isEqualTo($startingPoint->y)) {
-                    error_log("Ring closed successfully.");
                     $ringsOut[] = new RingOut($events);
                     break;
                 }
 
-                // Get and log available linked events
+                // Get all available linked events
                 $availableLEs = $event->getAvailableLinkedEvents();
-                error_log("Available linked events: " . count($availableLEs));
-                foreach ($availableLEs as $le) {
-                    error_log(" - Event at [{$le->point->x}, {$le->point->y}], segment {$le->segment->id}");
-                }
-
                 if (empty($availableLEs)) {
-                    error_log("No available linked events. Unable to complete ring.");
                     throw new \RuntimeException('Unable to complete output ring');
                 }
 
                 // Check for a closing event
                 $closingLEs = array_filter($availableLEs, function($le) use ($startingPoint) {
-                    return ($le->otherSE->point->x->isEqualTo($startingPoint->x) &&
-                        $le->otherSE->point->y->isEqualTo($startingPoint->y));
+                    return $le->otherSE->point->x->isEqualTo($startingPoint->x) &&
+                        $le->otherSE->point->y->isEqualTo($startingPoint->y);
                 });
                 if (!empty($closingLEs)) {
-                    error_log("Found closing event.");
                     $nextEvent = array_values($closingLEs)[0]->otherSE;
                     continue;
                 }
 
-                // Filter candidates based on shared ring IDs, falling back to all available events
-                if (!empty($initialRingIds)) {
-                    $sharedRingLEs = array_filter($availableLEs, function($le) use ($initialRingIds) {
-                        $segmentRingIds = array_map(fn($ring) => $ring->id, array_filter($le->segment->rings, fn($ring) => $ring !== null));
-                        return !empty(array_intersect($segmentRingIds, $initialRingIds));
-                    });
-                    $candidateLEs = !empty($sharedRingLEs) ? array_values($sharedRingLEs) : $availableLEs;
-                } else {
-                    $candidateLEs = $availableLEs;
-                }
-
-                // Log candidate events
-                error_log("Candidate events: " . count($candidateLEs));
-                foreach ($candidateLEs as $le) {
-                    error_log(" - Candidate event at [{$le->point->x}, {$le->point->y}], segment {$le->segment->id}");
-                }
+                // Filter candidates to those sharing ring IDs with the initial segment, if possible
+                $sharedRingLEs = array_filter($availableLEs, function($le) use ($initialRingIds) {
+                    $segmentRingIds = array_map(fn($ring) => $ring->id, array_filter($le->segment->rings, fn($ring) => $ring !== null));
+                    return !empty(array_intersect($segmentRingIds, $initialRingIds));
+                });
+                $candidateLEs = !empty($sharedRingLEs) ? array_values($sharedRingLEs) : $availableLEs;
 
                 // Select the next event
                 if (count($candidateLEs) === 1) {
@@ -121,7 +96,6 @@ class RingOut
                     $comparator = $event->getLeftmostComparator($prevEvent);
                     usort($candidateLEs, $comparator);
                     $nextEvent = $candidateLEs[0]->otherSE;
-                    error_log("Selected leftmost event at [{$nextEvent->point->x}, {$nextEvent->point->y}]");
                 }
 
                 // Handle intersections
@@ -134,7 +108,6 @@ class RingOut
                     }
                 }
                 if ($indexLE !== null) {
-                    error_log("Intersection detected at [{$event->point->x}, {$event->point->y}]");
                     $intersection = array_splice($intersectionLEs, $indexLE, 1)[0];
                     $ringEvents = array_splice($events, $intersection['index']);
                     array_unshift($ringEvents, $ringEvents[0]->otherSE);

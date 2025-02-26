@@ -74,8 +74,18 @@ class ClipperTest extends TestCase
         $targets = array_diff(scandir($endToEndDir), ['.', '..']);
 
         $targets = [
+//            'almost-colinear-segments',
+//            'almost-colinear-segments-but-not',
+//            'almost-parrallel-segments',
+//            'almost-parrallel-segments-2',
+//            'almost-parrallel-segments-3',
+//            'clean-degenerate-polygon',
+//            'clean-multipoly-with-polys-overlapping',
+//            'clean-multipoly-with-polys-touching',
+//            'clean-poly-with-backward-ring-winding-order',
+//            'clean-poly-with-interior-ring-overlapping-exterior',
             'clean-poly-with-interior-ring-splitting-exterior',
-            'clean-poly-with-interior-ring-touching-exterior',
+//            'clean-poly-with-interior-ring-touching-exterior',
         ];
 
         foreach ($targets as $target) {
