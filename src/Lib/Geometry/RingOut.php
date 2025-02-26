@@ -87,7 +87,10 @@ class RingOut
                 // Prefer segments sharing ring IDs with the current context
                 $sharedRingLEs = array_filter($availableLEs, function($le) use ($currentRingIds) {
                     $segmentRingIds = array_map(fn($ring) => $ring->id, array_filter($le->segment->rings, fn($ring) => $ring !== null));
-                    return !empty(array_intersect($segmentRingIds, $currentRingIds));
+                    if (is_array($currentRingIds)) {
+                        return !empty(array_intersect($segmentRingIds, $currentRingIds));
+                    }
+                    return !empty($segmentRingIds);
                 });
                 $candidateLEs = !empty($sharedRingLEs) ? array_values($sharedRingLEs) : $availableLEs;
 
