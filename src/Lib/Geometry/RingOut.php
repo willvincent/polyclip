@@ -31,66 +31,117 @@ class RingOut
     }
 
     /**
-     * @param  Segment[]  $allSegments
-     * @return mixed[]
+     * @param Segment[] $allSegments
+     * @return RingOut[]
      */
     public static function factory(array $allSegments): array
     {
         $ringsOut = [];
         $processedSegments = [];
+
         foreach ($allSegments as $segment) {
+            // Skip segments that aren’t in the result, already processed, or assigned to a ring
             if (! $segment->isInResult() || $segment->ringOut !== null || isset($processedSegments[$segment->id])) {
                 continue;
             }
+
+            // Log the starting segment
+            error_log("Starting new ring with segment {$segment->id}: [{$segment->leftSE->point->x}, {$segment->leftSE->point->y}] -> [{$segment->rightSE->point->x}, {$segment->rightSE->point->y}]");
+
             $events = [];
             $startingPoint = $segment->leftSE->point;
             $intersectionLEs = [];
             $event = $segment->leftSE;
             $nextEvent = $segment->rightSE;
+
+            // Log initial ring IDs for context
+            $initialRingIds = array_map(fn($ring) => $ring->id, array_filter($segment->rings, fn($ring) => $ring !== null));
+            error_log("Initial ring IDs: " . implode(', ', $initialRingIds));
+
             while (true) {
                 $events[] = $event;
                 $prevEvent = $event;
                 $event = $nextEvent;
                 $processedSegments[$event->segment->id] = true;
-                if ($event->point === $startingPoint) {
+
+                // Log the current event being processed
+                error_log("Processing event at [{$event->point->x}, {$event->point->y}]");
+
+                // Check if the ring is complete
+                if ($event->point->x->isEqualTo($startingPoint->x) && $event->point->y->isEqualTo($startingPoint->y)) {
+                    error_log("Ring closed successfully.");
                     $ringsOut[] = new RingOut($events);
                     break;
                 }
-                while (true) {
-                    $availableLEs = $event->getAvailableLinkedEvents();
-                    if (empty($availableLEs)) {
-//                        error_log("No available events at [{$event->point->x}, {$event->point->y}]");
-                        foreach ($event->point->events as $evt) {
-//                            error_log('Event: isLeft='.($evt->isLeft ? '1' : '').', inResult='.($evt->segment->isInResult() ? '1' : '').', ringOut='.($evt->segment->ringOut ? 'set' : 'null').', consumedBy='.($evt->consumedBy ? 'set' : 'null'));
-                        }
-                        throw new \RuntimeException('Unable to complete output ring');
-                    }
-                    if (count($availableLEs) === 1) {
-                        $nextEvent = $availableLEs[0]->otherSE;
+
+                // Get and log available linked events
+                $availableLEs = $event->getAvailableLinkedEvents();
+                error_log("Available linked events: " . count($availableLEs));
+                foreach ($availableLEs as $le) {
+                    error_log(" - Event at [{$le->point->x}, {$le->point->y}], segment {$le->segment->id}");
+                }
+
+                if (empty($availableLEs)) {
+                    error_log("No available linked events. Unable to complete ring.");
+                    throw new \RuntimeException('Unable to complete output ring');
+                }
+
+                // Check for a closing event
+                $closingLEs = array_filter($availableLEs, function($le) use ($startingPoint) {
+                    return ($le->otherSE->point->x->isEqualTo($startingPoint->x) &&
+                        $le->otherSE->point->y->isEqualTo($startingPoint->y));
+                });
+                if (!empty($closingLEs)) {
+                    error_log("Found closing event.");
+                    $nextEvent = array_values($closingLEs)[0]->otherSE;
+                    continue;
+                }
+
+                // Filter candidates based on shared ring IDs, falling back to all available events
+                if (!empty($initialRingIds)) {
+                    $sharedRingLEs = array_filter($availableLEs, function($le) use ($initialRingIds) {
+                        $segmentRingIds = array_map(fn($ring) => $ring->id, array_filter($le->segment->rings, fn($ring) => $ring !== null));
+                        return !empty(array_intersect($segmentRingIds, $initialRingIds));
+                    });
+                    $candidateLEs = !empty($sharedRingLEs) ? array_values($sharedRingLEs) : $availableLEs;
+                } else {
+                    $candidateLEs = $availableLEs;
+                }
+
+                // Log candidate events
+                error_log("Candidate events: " . count($candidateLEs));
+                foreach ($candidateLEs as $le) {
+                    error_log(" - Candidate event at [{$le->point->x}, {$le->point->y}], segment {$le->segment->id}");
+                }
+
+                // Select the next event
+                if (count($candidateLEs) === 1) {
+                    $nextEvent = $candidateLEs[0]->otherSE;
+                } else {
+                    $comparator = $event->getLeftmostComparator($prevEvent);
+                    usort($candidateLEs, $comparator);
+                    $nextEvent = $candidateLEs[0]->otherSE;
+                    error_log("Selected leftmost event at [{$nextEvent->point->x}, {$nextEvent->point->y}]");
+                }
+
+                // Handle intersections
+                $indexLE = null;
+                foreach ($intersectionLEs as $idx => $intersection) {
+                    if ($intersection['point']->x->isEqualTo($event->point->x) &&
+                        $intersection['point']->y->isEqualTo($event->point->y)) {
+                        $indexLE = $idx;
                         break;
                     }
-                    $indexLE = null;
-                    foreach ($intersectionLEs as $idx => $intersection) {
-                        if ($intersection['point']->x->isEqualTo($event->point->x) &&
-                            $intersection['point']->y->isEqualTo($event->point->y)) {
-                            $indexLE = $idx;
-                            break;
-                        }
-                    }
-                    if ($indexLE !== null) {
-                        $intersection = array_splice($intersectionLEs, $indexLE, 1)[0];
-                        $ringEvents = array_splice($events, $intersection['index']);
-                        array_unshift($ringEvents, $ringEvents[0]->otherSE);
-                        $ringsOut[] = new RingOut(array_reverse($ringEvents));
-
-                        continue;
-                    }
-                    $intersectionLEs[] = ['index' => count($events), 'point' => $event->point];
-                    $comparator = $event->getLeftmostComparator($prevEvent);
-                    usort($availableLEs, $comparator);
-                    $nextEvent = $availableLEs[0]->otherSE;
-                    break;
                 }
+                if ($indexLE !== null) {
+                    error_log("Intersection detected at [{$event->point->x}, {$event->point->y}]");
+                    $intersection = array_splice($intersectionLEs, $indexLE, 1)[0];
+                    $ringEvents = array_splice($events, $intersection['index']);
+                    array_unshift($ringEvents, $ringEvents[0]->otherSE);
+                    $ringsOut[] = new RingOut(array_reverse($ringEvents));
+                    continue;
+                }
+                $intersectionLEs[] = ['index' => count($events), 'point' => $event->point];
             }
         }
 

@@ -124,11 +124,12 @@ class SweepEvent
     {
         $events = [];
         foreach ($this->point->events as $evt) {
-            if ($evt !== $this && $evt->segment->ringOut === null && $evt->segment->isInResult() && $evt->consumedBy === null) {
+            if ($evt !== $this &&
+                $evt->segment->isInResult() &&
+                $evt->consumedBy === null) {
                 $events[] = $evt;
             }
         }
-
         return $events;
     }
 

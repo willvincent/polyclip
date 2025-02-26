@@ -13,6 +13,9 @@ use Polyclip\Lib\Vector;
 
 class RingIn
 {
+    private static int $ringId = 0; // Static counter for unique IDs
+    public int $id;
+
     public PolyIn $poly;
 
     public bool $isExterior;
@@ -31,6 +34,8 @@ class RingIn
      */
     public function __construct(array $geomRing, PolyIn $poly, bool $isExterior)
     {
+        $this->id = ++self::$ringId;
+
         if (empty($geomRing) || count($geomRing) < 3) {
             throw new \InvalidArgumentException('Input geometry is not a valid Polygon or MultiPolygon');
         }
