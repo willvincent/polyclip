@@ -4,7 +4,7 @@
         colors="true"
         stopOnFailure="false">
     <php>
-        <ini name="memory_limit" value="256M" />
+        <ini name="memory_limit" value="512M" />
     </php>
     <testsuites>
         <testsuite name="PolyClip Tests">

@@ -2,6 +2,7 @@
 
 namespace Polyclip\Tests;
 
+use GeoJson\Exception\UnserializationException;
 use GeoJson\GeoJson;
 use PHPUnit\Framework\TestCase;
 use Polyclip\Clipper;
@@ -73,20 +74,7 @@ class ClipperTest extends TestCase
         $endToEndDir = __DIR__.'/end-to-end';
         $targets = array_diff(scandir($endToEndDir), ['.', '..']);
 
-        $targets = [
-//            'almost-colinear-segments',
-//            'almost-colinear-segments-but-not',
-//            'almost-parrallel-segments',
-//            'almost-parrallel-segments-2',
-//            'almost-parrallel-segments-3',
-//            'clean-degenerate-polygon',
-//            'clean-multipoly-with-polys-overlapping',
-//            'clean-multipoly-with-polys-touching',
-//            'clean-poly-with-backward-ring-winding-order',
-//            'clean-poly-with-interior-ring-overlapping-exterior',
-            'clean-poly-with-interior-ring-splitting-exterior',
-//            'clean-poly-with-interior-ring-touching-exterior',
-        ];
+        $targets = array_filter($targets, fn($target) => !str_starts_with($target, 'SKIP'));
 
         foreach ($targets as $target) {
             // Skip dotfiles (e.g., .DS_Store)
@@ -132,9 +120,9 @@ class ClipperTest extends TestCase
                     }
 
                     // Perform the operation
-                    $result = Clipper::$op(...$args);
+                    $result = Clipper::$op($args);
 
-                    error_log($target .": \n" . json_encode($result));
+//                    error_log($target .": \n" . json_encode($result));
 
                     if (isset($resultGeojson->getProperties()['noCoordinates'])) {
                         // If we expect no coordinates, we cannot call getCoordinates()
