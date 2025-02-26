@@ -1,5 +1,5 @@
 {
-    "name": "will/polyclip",
+    "name": "willvincent/polyclip",
     "description": "PHP port of polyclip-ts.",
     "type": "library",
     "require": {
