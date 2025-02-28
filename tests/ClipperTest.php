@@ -4,6 +4,7 @@ namespace Polyclip\Tests;
 
 use GeoJson\Exception\UnserializationException;
 use GeoJson\GeoJson;
+use GeoJson\Geometry\Geometry;
 use PHPUnit\Framework\TestCase;
 use Polyclip\Clipper;
 
@@ -124,12 +125,11 @@ class ClipperTest extends TestCase
 
 //                    error_log($target .": \n" . json_encode($result));
 
-                    if (isset($resultGeojson->getProperties()['noCoordinates'])) {
-                        // If we expect no coordinates, we cannot call getCoordinates()
-                        $parsed = json_decode(json_encode($result->getGeometry()));
-                        $this->assertObjectNotHasProperty('coordinates', $parsed);
+                    $expectedCoordinates = $this->normalizeCoordinates($expectedCoordinates);
+                    $resultGeometry = $result->getGeometry();
+                    if (!$resultGeometry instanceof Geometry) {
+                        $this->assertNull($resultGeometry);
                     } else {
-                        $expectedCoordinates = $this->normalizeCoordinates($expectedCoordinates);
                         $resultCoordinates = $this->normalizeCoordinates($result->getGeometry()->getCoordinates());
 
                         $this->assertEquals(

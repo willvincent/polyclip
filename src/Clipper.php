@@ -206,11 +206,11 @@ final class Clipper
      * @param mixed[] $array
      * @return Geometry
      */
-    private static function arrayToGeometry(array $array): Geometry
+    private static function arrayToGeometry(array $array): ?Geometry
     {
         $array = self::convertToFloat($array);
         if (empty($array)) {
-            return new Polygon([]);
+            return null;
         }
         if (count($array) === 1) {
             return new Polygon($array[0]);
